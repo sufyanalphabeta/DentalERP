@@ -18,7 +18,7 @@ public sealed class UpdatePatientCommandHandler(PatientsDbContext db)
             request.FullName, request.Phone, request.DateOfBirth,
             request.Gender, request.Phone2, request.Email, request.Address,
             request.NationalId, request.BloodType, request.Allergies,
-            request.ChronicDiseases, request.Notes);
+            request.ChronicDiseases, request.Notes, request.InsuranceCompanyId);
 
         await db.SaveChangesAsync(ct);
         return Result.Success();

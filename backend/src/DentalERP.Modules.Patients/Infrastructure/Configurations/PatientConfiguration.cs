@@ -25,6 +25,7 @@ public sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.Property(p => p.ChronicDiseases).HasColumnName("chronic_diseases");
         builder.Property(p => p.Notes).HasColumnName("notes");
         builder.Property(p => p.IsActive).HasColumnName("is_active");
+        builder.Property(p => p.InsuranceCompanyId).HasColumnName("insurance_company_id");
         builder.Property(p => p.CreatedAt).HasColumnName("created_at");
         builder.Property(p => p.UpdatedAt).HasColumnName("updated_at");
         builder.Property(p => p.DeletedAt).HasColumnName("deleted_at");

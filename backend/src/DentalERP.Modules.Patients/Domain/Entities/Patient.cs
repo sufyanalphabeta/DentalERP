@@ -18,6 +18,7 @@ public sealed class Patient : BaseEntity
     public string? ChronicDiseases { get; private set; }
     public string? Notes { get; private set; }
     public bool IsActive { get; private set; } = true;
+    public Guid? InsuranceCompanyId { get; private set; }
 
     private Patient() { }
 
@@ -34,7 +35,8 @@ public sealed class Patient : BaseEntity
         string? bloodType = null,
         string? allergies = null,
         string? chronicDiseases = null,
-        string? notes = null)
+        string? notes = null,
+        Guid? insuranceCompanyId = null)
     {
         var patient = new Patient
         {
@@ -50,7 +52,8 @@ public sealed class Patient : BaseEntity
             BloodType = bloodType,
             Allergies = allergies,
             ChronicDiseases = chronicDiseases,
-            Notes = notes
+            Notes = notes,
+            InsuranceCompanyId = insuranceCompanyId
         };
         return patient;
     }
@@ -67,7 +70,8 @@ public sealed class Patient : BaseEntity
         string? bloodType = null,
         string? allergies = null,
         string? chronicDiseases = null,
-        string? notes = null)
+        string? notes = null,
+        Guid? insuranceCompanyId = null)
     {
         FullName = fullName;
         Phone = phone;
@@ -81,6 +85,7 @@ public sealed class Patient : BaseEntity
         Allergies = allergies;
         ChronicDiseases = chronicDiseases;
         Notes = notes;
+        InsuranceCompanyId = insuranceCompanyId;
         Touch();
     }
 

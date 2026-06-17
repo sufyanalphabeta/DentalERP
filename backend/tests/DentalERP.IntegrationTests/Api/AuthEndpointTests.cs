@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using DentalERP.Modules.IAM.Infrastructure;
+using DentalERP.Modules.Patients.Infrastructure;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -32,16 +33,22 @@ public class DentalERPTestFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // Replace real DB with in-memory for fast integration tests
+            // Replace real DBs with in-memory for fast integration tests
             services.RemoveAll<DbContextOptions<IAMDbContext>>();
             services.RemoveAll<IAMDbContext>();
             services.AddDbContext<IAMDbContext>(opts =>
                 opts.UseInMemoryDatabase("dentalerp_integration_test"));
 
-            // Ensure DB is created
+            services.RemoveAll<DbContextOptions<PatientsDbContext>>();
+            services.RemoveAll<PatientsDbContext>();
+            services.AddDbContext<PatientsDbContext>(opts =>
+                opts.UseInMemoryDatabase("dentalerp_integration_test"));
+
+            // Ensure DBs are created
             var sp = services.BuildServiceProvider();
             using var scope = sp.CreateScope();
             scope.ServiceProvider.GetRequiredService<IAMDbContext>().Database.EnsureCreated();
+            scope.ServiceProvider.GetRequiredService<PatientsDbContext>().Database.EnsureCreated();
         });
     }
 }

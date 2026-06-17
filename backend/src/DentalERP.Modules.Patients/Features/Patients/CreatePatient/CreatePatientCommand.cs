@@ -17,7 +17,8 @@ public sealed record CreatePatientCommand(
     string? BloodType = null,
     string? Allergies = null,
     string? ChronicDiseases = null,
-    string? Notes = null
+    string? Notes = null,
+    Guid? InsuranceCompanyId = null
 ) : IRequest<Result<CreatePatientResponse>>;
 
 public sealed record CreatePatientResponse(Guid Id, string FileNumber);

@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DentalERP.Host\DentalERP.Host.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Patients\DentalERP.Modules.Patients.csproj" />
   </ItemGroup>
 
 </Project>

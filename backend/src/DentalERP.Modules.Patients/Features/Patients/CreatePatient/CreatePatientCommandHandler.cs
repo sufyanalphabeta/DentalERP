@@ -26,7 +26,8 @@ public sealed class CreatePatientCommandHandler(PatientsDbContext db)
             fileNumber, request.FullName, request.Phone,
             request.DateOfBirth, request.Gender, request.Phone2,
             request.Email, request.Address, request.NationalId,
-            request.BloodType, request.Allergies, request.ChronicDiseases, request.Notes);
+            request.BloodType, request.Allergies, request.ChronicDiseases,
+            request.Notes, request.InsuranceCompanyId);
 
         db.Patients.Add(patient);
         await db.SaveChangesAsync(ct);
