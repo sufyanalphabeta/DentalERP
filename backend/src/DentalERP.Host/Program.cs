@@ -1,5 +1,6 @@
 using System.Text;
 using DentalERP.Modules.IAM;
+using DentalERP.Modules.Patients;
 using DentalERP.SharedKernel.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -40,6 +41,7 @@ builder.Services.AddSharedKernel();
 
 // Modules
 builder.Services.AddIAMModule(builder.Configuration);
+builder.Services.AddPatientsModule(builder.Configuration);
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -88,6 +90,7 @@ app.UseAuthorization();
 
 // Module Endpoints
 app.MapIAMEndpoints();
+app.MapPatientsModule();
 
 // Health check
 app.MapGet("/health", () => Results.Text($"Healthy|{DateTime.UtcNow:O}"))

@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalERP.UnitTests", "test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalERP.IntegrationTests", "tests\DentalERP.IntegrationTests\DentalERP.IntegrationTests.csproj", "{1C20F56D-2C8D-4B32-A93C-9677D7519C83}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalERP.Modules.Patients", "src\DentalERP.Modules.Patients\DentalERP.Modules.Patients.csproj", "{EDD7E4C9-009E-4CF7-939C-056100EB7388}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,18 @@ Global
 		{1C20F56D-2C8D-4B32-A93C-9677D7519C83}.Release|x64.Build.0 = Release|Any CPU
 		{1C20F56D-2C8D-4B32-A93C-9677D7519C83}.Release|x86.ActiveCfg = Release|Any CPU
 		{1C20F56D-2C8D-4B32-A93C-9677D7519C83}.Release|x86.Build.0 = Release|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Debug|x64.Build.0 = Debug|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Debug|x86.Build.0 = Debug|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Release|x64.ActiveCfg = Release|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Release|x64.Build.0 = Release|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Release|x86.ActiveCfg = Release|Any CPU
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,5 +111,6 @@ Global
 		{337B8AD6-A2CB-4C73-BCD4-C5C5C01C6E8C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{AA00FFC4-9C46-4FCF-8EAA-80E6A220BC7E} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{1C20F56D-2C8D-4B32-A93C-9677D7519C83} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{EDD7E4C9-009E-4CF7-939C-056100EB7388} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

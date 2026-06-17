@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DentalERP.SharedKernel\DentalERP.SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\DentalERP.Modules.IAM\DentalERP.Modules.IAM.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Patients\DentalERP.Modules.Patients.csproj" />
   </ItemGroup>
 
 </Project>
