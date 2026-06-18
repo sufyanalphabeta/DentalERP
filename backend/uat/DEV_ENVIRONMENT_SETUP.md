@@ -62,7 +62,7 @@ Create `backend/src/DentalERP.Host/appsettings.Development.json`:
   "Jwt": {
     "SecretKey": "DentalERP-DEV-Secret-Key-2026-MustBe32Chars!!",
     "Issuer": "DentalERP",
-    "Audience": "DentalERP-Client",
+    "Audience": "DentalERP-Clients",
     "ExpiryMinutes": 480
   },
   "AllowedOrigins": [

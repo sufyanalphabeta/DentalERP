@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import type { GetQueueResponse, QueueEntryItem, QueueStatus } from "@/types/patients";
 
 const STATUS_LABELS: Record<QueueStatus, string> = {

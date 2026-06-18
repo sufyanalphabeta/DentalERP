@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -41,7 +41,7 @@ function formatBytes(bytes?: number): string {
 
 export default function MediaLibraryPage() {
   const { id } = useParams<{ id: string }>();
-  const token = useAuthStore((s) => s.token);
+  const token = useAuthStore((s) => s.accessToken);
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const [media, setMedia] = useState<PatientMedia[]>([]);
   const [loading, setLoading] = useState(true);

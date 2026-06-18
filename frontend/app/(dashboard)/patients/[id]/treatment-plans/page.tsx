@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -56,7 +56,7 @@ const statusAr: Record<string, string> = {
 
 export default function TreatmentPlansPage() {
   const { id } = useParams<{ id: string }>();
-  const token = useAuthStore((s) => s.token);
+  const token = useAuthStore((s) => s.accessToken);
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const [plans, setPlans] = useState<TreatmentPlan[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { PermissionGate } from "@/components/shared/PermissionGate";
 import type { AppointmentItem, GetAppointmentsResponse } from "@/types/patients";
 

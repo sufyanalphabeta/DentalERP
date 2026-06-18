@@ -29,6 +29,14 @@ export interface GetPatientsResponse {
   totalPages: number;
 }
 
+export interface GetAppointmentsResponse {
+  items: AppointmentItem[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export interface AppointmentItem {
   id: string;
   patientId: string;

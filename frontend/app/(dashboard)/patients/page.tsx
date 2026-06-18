@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { PermissionGate } from "@/components/shared/PermissionGate";
 import type { GetPatientsResponse, PatientSummary } from "@/types/patients";
 
