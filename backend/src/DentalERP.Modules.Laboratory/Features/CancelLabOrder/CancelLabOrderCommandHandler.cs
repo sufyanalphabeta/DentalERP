@@ -1,0 +1,22 @@
+using DentalERP.Modules.Laboratory.Infrastructure;
+using DentalERP.SharedKernel.Results;
+using MediatR;
+
+namespace DentalERP.Modules.Laboratory.Features.CancelLabOrder;
+
+public sealed class CancelLabOrderCommandHandler(LaboratoryDbContext db)
+    : IRequestHandler<CancelLabOrderCommand, Result>
+{
+    public async Task<Result> Handle(CancelLabOrderCommand request, CancellationToken cancellationToken)
+    {
+        var order = await db.LabOrders.FindAsync([request.OrderId], cancellationToken);
+        if (order is null)
+            return Result.Failure(new Error("LabOrder.NotFound", "الطلب غير موجود"));
+
+        var result = order.Cancel(request.Reason);
+        if (!result.IsSuccess) return result;
+
+        await db.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}

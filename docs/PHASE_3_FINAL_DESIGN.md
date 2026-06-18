@@ -1,8 +1,7 @@
 # PHASE 3 FINAL DESIGN — DentalERP
 
-> **التاريخ:** 2026-06-17 | **الحالة:** 📋 Final Design — Pending Approval
-> **يشمل:** كل تعديلات مراجعة PHASE_3_DESIGN_REVIEW
-> **ملاحظة:** لا يُبدأ البرمجة قبل اعتماد هذا الوثيق.
+> **التاريخ:** 2026-06-17 | **الحالة:** ✅ APPROVED — Implementation Started
+> **يشمل:** كل تعديلات مراجعة PHASE_3_DESIGN_REVIEW + التعديلات الخمسة النهائية
 
 ---
 
@@ -192,7 +191,8 @@ CREATE TABLE doctor_assignments (
     notes           TEXT,
     assigned_by_id  UUID        REFERENCES users(id),
 
-    UNIQUE (patient_id, doctor_id)  -- طبيب واحد لكل مريض
+    -- لا UNIQUE على الإطلاق — نفس الطبيب يمكنه معالجة نفس المريض مرات متعددة
+    -- التحكم عبر Application Logic: لا يُسمح بـ Active جديد إذا يوجد Active للطبيب+المريض
 );
 
 CREATE INDEX ix_assignment_patient        ON doctor_assignments(patient_id);
@@ -271,6 +271,15 @@ CREATE TABLE patient_media (
     title           VARCHAR(200),
     description     TEXT,
     tooth_id        SMALLINT    REFERENCES teeth(id),  -- اختياري: لأي سن؟
+
+    -- هل الوسيط مطلوب؟ (مثل: OPG قبل تركيب الجسر)
+    is_required     BOOLEAN     NOT NULL DEFAULT FALSE,
+
+    -- موافقة الطبيب على الوسيط (للأشعة والصور الطبية)
+    is_approved     BOOLEAN     NOT NULL DEFAULT FALSE,
+    approved_by_id  UUID        REFERENCES users(id),
+    approved_at     TIMESTAMPTZ,
+
     uploaded_by_id  UUID        NOT NULL REFERENCES users(id),
     uploaded_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at      TIMESTAMPTZ
@@ -314,6 +323,11 @@ CREATE TABLE procedures (
     notes                   TEXT,
     performed_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     duration_minutes        INTEGER,
+
+    -- حالة الفوترة (تُحدَّث من Treasury — Phase 5)
+    billing_status          VARCHAR(20) NOT NULL DEFAULT 'Pending'
+        CHECK (billing_status IN ('Pending','SentToTreasury','Paid','Cancelled')),
+
     created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -321,6 +335,8 @@ CREATE INDEX ix_procedures_appointment ON procedures(appointment_id);
 CREATE INDEX ix_procedures_patient     ON procedures(patient_id);
 CREATE INDEX ix_procedures_service     ON procedures(service_id)
     WHERE service_id IS NOT NULL;
+CREATE INDEX ix_procedures_billing     ON procedures(billing_status)
+    WHERE billing_status != 'Paid';
 ```
 
 ### لماذا بدون FK الآن؟
@@ -360,6 +376,10 @@ CREATE TABLE treatment_plans (
 
     paid_amount     DECIMAL(10,2) NOT NULL DEFAULT 0,
         -- ما دُفع فعلياً (من Treasury — Phase 5)
+
+    priority        VARCHAR(10) NOT NULL DEFAULT 'Normal'
+        CHECK (priority IN ('Low','Normal','High','Urgent')),
+        -- Low=انتظار | Normal=عادي | High=مهم | Urgent=طارئ
 
     status          VARCHAR(20) NOT NULL DEFAULT 'Draft'
         CHECK (status IN ('Draft','Active','Completed','Cancelled','OnHold')),
@@ -548,11 +568,11 @@ backend/src/DentalERP.Modules.Clinical/
 | # | التغيير | الوصف |
 |---|---------|-------|
 | 1 | ✅ الأسنان اللبنية | FDI 51-85، حقل `is_primary = TRUE` |
-| 2 | ✅ Doctor Assignment Lifecycle | `status` + `can_view` + `can_edit` + Transfer |
-| 3 | ✅ Media Types | Before, After, OPG, CBCT, XRay, Document |
-| 4 | ✅ `service_id` على Procedures | UUID nullable، جاهز لـ Phase 5 |
-| 5 | ✅ Treatment Plan Costs | `estimated_cost` + `total_cost` + `actual_cost` + `paid_amount` |
-| 6 | ✅ Patient Timeline | وثيقة مستقلة + جدول + API + Frontend |
+| 2 | ✅ Doctor Assignment Lifecycle | `status` + `can_view` + `can_edit` + Transfer، **بدون UNIQUE** |
+| 3 | ✅ Media Types + Approval | Before, After, OPG, CBCT, XRay, Document + `is_required/is_approved/approved_by_id/approved_at` |
+| 4 | ✅ `service_id` + `billing_status` على Procedures | UUID nullable + Pending/SentToTreasury/Paid/Cancelled |
+| 5 | ✅ Treatment Plan Costs + Priority | `estimated_cost/total_cost/actual_cost/paid_amount` + `priority` (Low/Normal/High/Urgent) |
+| 6 | ✅ Patient Timeline + event_category | وثيقة مستقلة + Clinical/Financial/Administrative/Insurance/Radiology/Laboratory |
 | 7 | ✅ Dental Chart History | **قرار نهائي**: جدول واحد + `is_current` |
 
 ---

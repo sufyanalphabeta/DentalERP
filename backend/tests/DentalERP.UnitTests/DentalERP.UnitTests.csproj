@@ -25,6 +25,14 @@
     <ProjectReference Include="..\..\src\DentalERP.SharedKernel\DentalERP.SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\DentalERP.Modules.IAM\DentalERP.Modules.IAM.csproj" />
     <ProjectReference Include="..\..\src\DentalERP.Modules.Patients\DentalERP.Modules.Patients.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Clinical\DentalERP.Modules.Clinical.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Financial\DentalERP.Modules.Financial.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Laboratory\DentalERP.Modules.Laboratory.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Radiology\DentalERP.Modules.Radiology.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Inventory\DentalERP.Modules.Inventory.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Purchasing\DentalERP.Modules.Purchasing.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Expenses\DentalERP.Modules.Expenses.csproj" />
+    <ProjectReference Include="..\..\src\DentalERP.Modules.Assets\DentalERP.Modules.Assets.csproj" />
   </ItemGroup>
 
 </Project>

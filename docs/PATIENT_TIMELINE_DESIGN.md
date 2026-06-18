@@ -71,11 +71,23 @@ CREATE TABLE patient_timeline (
     metadata        JSONB,                      -- بيانات إضافية حسب نوع الحدث
     event_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     is_visible_to_doctor   BOOLEAN NOT NULL DEFAULT TRUE,
-    is_visible_to_patient  BOOLEAN NOT NULL DEFAULT FALSE
+    is_visible_to_patient  BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- تصنيف الحدث للفلترة السريعة
+    event_category  VARCHAR(20) NOT NULL DEFAULT 'Administrative'
+        CHECK (event_category IN (
+            'Clinical',        -- إجراءات طبية، مخطط الأسنان
+            'Financial',       -- فواتير، دفعات
+            'Administrative',  -- مواعيد، قائمة الانتظار، تسجيل
+            'Insurance',       -- مطالبات التأمين
+            'Radiology',       -- أشعة ووسائط طبية
+            'Laboratory'       -- تحاليل مخبرية
+        ))
 );
 
 CREATE INDEX ix_timeline_patient    ON patient_timeline(patient_id, event_at DESC);
 CREATE INDEX ix_timeline_event_type ON patient_timeline(event_type);
+CREATE INDEX ix_timeline_category   ON patient_timeline(patient_id, event_category);
 CREATE INDEX ix_timeline_entity     ON patient_timeline(linked_entity_type, linked_entity_id)
     WHERE linked_entity_id IS NOT NULL;
 ```

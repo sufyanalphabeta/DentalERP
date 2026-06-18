@@ -1,6 +1,14 @@
 using System.Text;
+using DentalERP.Modules.Clinical;
+using DentalERP.Modules.Financial;
 using DentalERP.Modules.IAM;
+using DentalERP.Modules.Inventory;
+using DentalERP.Modules.Laboratory;
 using DentalERP.Modules.Patients;
+using DentalERP.Modules.Assets;
+using DentalERP.Modules.Expenses;
+using DentalERP.Modules.Purchasing;
+using DentalERP.Modules.Radiology;
 using DentalERP.SharedKernel.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -42,6 +50,14 @@ builder.Services.AddSharedKernel();
 // Modules
 builder.Services.AddIAMModule(builder.Configuration);
 builder.Services.AddPatientsModule(builder.Configuration);
+builder.Services.AddClinicalModule(builder.Configuration);
+builder.Services.AddFinancialModule(builder.Configuration);
+builder.Services.AddLaboratoryModule(builder.Configuration);
+builder.Services.AddRadiologyModule(builder.Configuration);
+builder.Services.AddInventoryModule(builder.Configuration);
+builder.Services.AddPurchasingModule(builder.Configuration);
+builder.Services.AddExpensesModule(builder.Configuration);
+builder.Services.AddAssetsModule(builder.Configuration);
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -91,6 +107,14 @@ app.UseAuthorization();
 // Module Endpoints
 app.MapIAMEndpoints();
 app.MapPatientsModule();
+app.MapClinicalModule();
+app.MapFinancialModule();
+app.MapLaboratoryModule();
+app.MapRadiologyModule();
+app.MapInventoryModule();
+app.MapPurchasingModule();
+app.MapExpensesModule();
+app.MapAssetsModule();
 
 // Health check
 app.MapGet("/health", () => Results.Text($"Healthy|{DateTime.UtcNow:O}"))

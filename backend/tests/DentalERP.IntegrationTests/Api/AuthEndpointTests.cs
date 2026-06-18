@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using DentalERP.Modules.Clinical.Infrastructure;
 using DentalERP.Modules.IAM.Infrastructure;
 using DentalERP.Modules.Patients.Infrastructure;
 using FluentAssertions;
@@ -44,11 +45,17 @@ public class DentalERPTestFactory : WebApplicationFactory<Program>
             services.AddDbContext<PatientsDbContext>(opts =>
                 opts.UseInMemoryDatabase("dentalerp_integration_test"));
 
+            services.RemoveAll<DbContextOptions<ClinicalDbContext>>();
+            services.RemoveAll<ClinicalDbContext>();
+            services.AddDbContext<ClinicalDbContext>(opts =>
+                opts.UseInMemoryDatabase("dentalerp_integration_test"));
+
             // Ensure DBs are created
             var sp = services.BuildServiceProvider();
             using var scope = sp.CreateScope();
             scope.ServiceProvider.GetRequiredService<IAMDbContext>().Database.EnsureCreated();
             scope.ServiceProvider.GetRequiredService<PatientsDbContext>().Database.EnsureCreated();
+            scope.ServiceProvider.GetRequiredService<ClinicalDbContext>().Database.EnsureCreated();
         });
     }
 }
