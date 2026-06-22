@@ -28,9 +28,9 @@ public static class RadiologyEndpoints
 
         rad.MapGet("/orders", async (IMediator mediator,
             Guid? patientId, Guid? doctorId, string? status,
-            DateTime? from, DateTime? to, int page = 1, int pageSize = 20) =>
+            DateTime? from, DateTime? to, int page = 1, int pageSize = 20, Guid? typeId = null) =>
         {
-            var result = await mediator.Send(new GetRadiologyOrdersQuery(patientId, doctorId, status, from, to, page, pageSize));
+            var result = await mediator.Send(new GetRadiologyOrdersQuery(patientId, doctorId, status, from, to, page, pageSize, typeId));
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
         });
 

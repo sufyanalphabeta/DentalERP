@@ -6,6 +6,7 @@ using DentalERP.Modules.Financial.Features.Insurance.GetInsuranceCompanies;
 using DentalERP.Modules.Financial.Features.Insurance.RecordInsurancePayment;
 using DentalERP.Modules.Financial.Features.Insurance.RejectInsuranceClaim;
 using DentalERP.Modules.Financial.Features.Insurance.SubmitInsuranceClaim;
+using DentalERP.Modules.Financial.Features.Insurance.UpdateInsuranceCompany;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +30,13 @@ public static class InsuranceEndpoints
         {
             var result = await mediator.Send(cmd);
             return result.IsSuccess ? Results.Created($"/api/insurance/companies/{result.Value}", new { id = result.Value }) : Results.BadRequest(result.Error);
+        });
+
+        ins.MapPut("/companies/{id:guid}", async (IMediator mediator, Guid id, UpdateInsuranceCompanyRequest req) =>
+        {
+            var result = await mediator.Send(new UpdateInsuranceCompanyCommand(
+                id, req.Name, req.NameAr, req.ContactPerson, req.Phone, req.Email, req.DefaultCoveragePercent, req.IsActive));
+            return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
         });
 
         ins.MapGet("/claims", async (IMediator mediator,
@@ -73,4 +81,5 @@ public static class InsuranceEndpoints
 
     private sealed record InsurancePaymentRequest(decimal Amount, string? ReferenceNumber, string? Notes, Guid ReceivedById, Guid? VaultId = null);
     private sealed record RejectRequest(string Reason);
+    private sealed record UpdateInsuranceCompanyRequest(string Name, string? NameAr, string? ContactPerson, string? Phone, string? Email, decimal DefaultCoveragePercent, bool IsActive);
 }

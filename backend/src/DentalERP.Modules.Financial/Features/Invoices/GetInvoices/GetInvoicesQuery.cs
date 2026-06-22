@@ -10,17 +10,19 @@ public sealed record GetInvoicesQuery(
     DateTime? From = null,
     DateTime? To = null,
     int Page = 1,
-    int PageSize = 20) : IRequest<Result<InvoicesPageDto>>;
+    int PageSize = 20,
+    string? Search = null) : IRequest<Result<InvoicesPageDto>>;
 
-public sealed record InvoicesPageDto(int TotalCount, List<InvoiceSummaryDto> Items);
+public sealed record InvoicesPageDto(int Total, int Page, int PageSize, List<InvoiceSummaryDto> Items);
 
 public sealed record InvoiceSummaryDto(
     Guid Id,
     string InvoiceNumber,
-    Guid PatientId,
-    Guid DoctorId,
+    string PatientName,
+    string DoctorName,
     string Status,
     decimal TotalAmount,
     decimal PaidAmount,
     decimal Remaining,
+    string Currency,
     DateTime CreatedAt);

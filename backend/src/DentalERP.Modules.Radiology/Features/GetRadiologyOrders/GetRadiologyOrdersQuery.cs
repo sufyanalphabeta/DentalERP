@@ -10,7 +10,8 @@ public sealed record GetRadiologyOrdersQuery(
     DateTime? From,
     DateTime? To,
     int Page,
-    int PageSize
+    int PageSize,
+    Guid? TypeId = null
 ) : IRequest<Result<PagedRadiologyOrdersDto>>;
 
 public sealed record PagedRadiologyOrdersDto(List<RadiologyOrderSummaryDto> Items, int TotalCount, int Page, int PageSize);
@@ -24,6 +25,8 @@ public sealed record RadiologyOrderSummaryDto(
     bool IsExternalPatient,
     string? ExternalPatientName,
     Guid? PatientId,
+    string PatientName,
     Guid? DoctorId,
-    DateTime OrderDate
+    string? DoctorName,
+    DateTime RequestDate
 );

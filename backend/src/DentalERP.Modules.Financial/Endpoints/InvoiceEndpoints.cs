@@ -1,4 +1,5 @@
 using DentalERP.Modules.Financial.Features.Invoices.CancelInvoice;
+using DentalERP.Modules.Financial.Features.Invoices.ConfirmInvoice;
 using DentalERP.Modules.Financial.Features.Invoices.CreateInvoice;
 using DentalERP.Modules.Financial.Features.Invoices.GetInvoice;
 using DentalERP.Modules.Financial.Features.Invoices.GetInvoices;
@@ -17,9 +18,9 @@ public static class InvoiceEndpoints
 
         group.MapGet("/", async (IMediator mediator,
             Guid? patientId, Guid? doctorId, string? status,
-            DateTime? from, DateTime? to, int page = 1, int pageSize = 20) =>
+            DateTime? from, DateTime? to, int page = 1, int pageSize = 20, string? search = null) =>
         {
-            var result = await mediator.Send(new GetInvoicesQuery(patientId, doctorId, status, from, to, page, pageSize));
+            var result = await mediator.Send(new GetInvoicesQuery(patientId, doctorId, status, from, to, page, pageSize, search));
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
         });
 
@@ -33,6 +34,12 @@ public static class InvoiceEndpoints
         {
             var result = await mediator.Send(cmd);
             return result.IsSuccess ? Results.Created($"/api/invoices/{result.Value}", new { id = result.Value }) : Results.BadRequest(result.Error);
+        });
+
+        group.MapPost("/{id:guid}/confirm", async (IMediator mediator, Guid id) =>
+        {
+            var result = await mediator.Send(new ConfirmInvoiceCommand(id));
+            return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
         });
 
         group.MapPost("/{id:guid}/cancel", async (IMediator mediator, Guid id, CancelRequest req) =>
