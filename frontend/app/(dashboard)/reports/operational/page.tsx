@@ -89,6 +89,14 @@ export default function OperationalReportsPage() {
       .finally(() => setDoctorsLoading(false));
   };
 
+  function exportCsv(filename: string, rows: string[][]) {
+    const csv = rows.map((r) => r.join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   useEffect(() => {
     if (activeSection === "inactive") loadInactive();
     else if (activeSection === "overdue") loadOverdue();
@@ -147,6 +155,16 @@ export default function OperationalReportsPage() {
               <button onClick={loadInactive} className="bg-violet-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-violet-700">
                 تحديث
               </button>
+              <button
+                onClick={() => exportCsv("inactive-patients.csv", [
+                  ["المريض", "الهاتف", "آخر زيارة", "مدة الغياب (شهر)"],
+                  ...inactivePatients.map((p) => [p.patientName, p.phone ?? "", p.lastVisit ?? "", String(p.monthsSinceLastVisit)]),
+                ])}
+                disabled={inactivePatients.length === 0}
+                className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 disabled:opacity-50"
+              >
+                📊 CSV
+              </button>
             </div>
           </div>
 
@@ -200,9 +218,21 @@ export default function OperationalReportsPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-800">الأقساط المتأخرة</h2>
-            <button onClick={loadOverdue} className="bg-violet-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-violet-700">
-              تحديث
-            </button>
+            <div className="flex gap-2">
+              <button onClick={loadOverdue} className="bg-violet-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-violet-700">
+                تحديث
+              </button>
+              <button
+                onClick={() => exportCsv("overdue-installments.csv", [
+                  ["المريض", "رقم الفاتورة", "الإجمالي", "المتبقي", "أقساط متأخرة", "أقدم موعد"],
+                  ...overdueInstallments.map((i) => [i.patientName, i.invoiceNumber, i.totalAmount.toFixed(2), i.remainingAmount.toFixed(2), String(i.overduePayments), i.oldestDueDate]),
+                ])}
+                disabled={overdueInstallments.length === 0}
+                className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 disabled:opacity-50"
+              >
+                📊 CSV
+              </button>
+            </div>
           </div>
 
           {overdueLoading ? (
@@ -283,6 +313,16 @@ export default function OperationalReportsPage() {
               </select>
               <button onClick={loadRevenue} className="bg-violet-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-violet-700">
                 تحديث
+              </button>
+              <button
+                onClick={() => exportCsv("monthly-revenue.csv", [
+                  ["الشهر", "عدد الفواتير", "الإيرادات", "المحصل", "المتبقي"],
+                  ...monthlyRevenue.map((m) => [m.monthLabel, String(m.invoiceCount), m.totalRevenue.toFixed(2), m.totalPaid.toFixed(2), m.totalOutstanding.toFixed(2)]),
+                ])}
+                disabled={monthlyRevenue.length === 0}
+                className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 disabled:opacity-50"
+              >
+                📊 CSV
               </button>
             </div>
           </div>
@@ -378,6 +418,16 @@ export default function OperationalReportsPage() {
               </select>
               <button onClick={loadDoctors} className="bg-violet-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-violet-700">
                 تحديث
+              </button>
+              <button
+                onClick={() => exportCsv("doctor-performance.csv", [
+                  ["الطبيب", "عدد الفواتير", "الإيرادات", "العمولة", "نسبة العمولة"],
+                  ...doctorPerformance.map((d) => [d.doctorName, String(d.invoiceCount), d.totalRevenue.toFixed(2), d.totalCommission.toFixed(2), `${d.commissionRate.toFixed(1)}%`]),
+                ])}
+                disabled={doctorPerformance.length === 0}
+                className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 disabled:opacity-50"
+              >
+                📊 CSV
               </button>
             </div>
           </div>

@@ -15,7 +15,9 @@ const REPORT_GROUPS: ReportGroup[] = [
     icon: "💰",
     color: "border-blue-200 bg-blue-50",
     reports: [
-      { label: "تقرير الإيرادات", href: "/finance/invoices", desc: "ملخص الفواتير والمدفوعات" },
+      { label: "تقرير التحصيلات", href: "/reports/collections", desc: "إجمالي التحصيلات النقدية حسب الخزينة وطريقة الدفع" },
+      { label: "تقادم الذمم المدينة", href: "/reports/ar-aging", desc: "المبالغ المستحقة على المرضى مقسّمة حسب العمر" },
+      { label: "تقرير الفواتير", href: "/finance/invoices", desc: "ملخص الفواتير والمدفوعات" },
       { label: "تقرير الأقساط", href: "/finance/installments", desc: "خطط التقسيط والمتأخرات" },
       { label: "حسابات الأطباء", href: "/finance/doctors", desc: "العمولات والمستحقات" },
     ],
