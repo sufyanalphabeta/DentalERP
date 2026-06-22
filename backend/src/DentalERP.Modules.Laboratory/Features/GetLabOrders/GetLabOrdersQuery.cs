@@ -17,17 +17,21 @@ public sealed record LabOrderSummaryDto(
     Guid Id,
     string OrderNumber,
     Guid PatientId,
-    Guid DoctorId,
-    string? LabName,
+    string PatientName,
+    Guid? DoctorId,
+    string? DoctorName,
+    string? ExternalLabName,
     string Status,
+    string? Description,
     decimal TotalCost,
+    decimal TotalRevenue,
     bool IsExternal,
-    DateTime CreatedAt
+    DateTime RequestDate
 );
 
 public sealed record GetLabOrdersResponse(
     List<LabOrderSummaryDto> Items,
-    int Total,
+    int TotalCount,
     int Page,
     int PageSize
 );

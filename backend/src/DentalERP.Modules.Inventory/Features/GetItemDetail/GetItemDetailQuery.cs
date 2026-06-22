@@ -16,6 +16,7 @@ public sealed record ItemDetailDto(
     Guid? UnitOfMeasureId,
     string? UomName,
     decimal UnitCost,
+    decimal SalePrice,
     decimal ReorderLevel,
     decimal ReorderQuantity,
     bool IsExpiryTracked,

@@ -1,4 +1,5 @@
 using DentalERP.Modules.Inventory.Domain.Entities;
+using DentalERP.Modules.Inventory.Services;
 using DentalERP.Modules.Purchasing.Domain.Entities;
 using DentalERP.Modules.Purchasing.Infrastructure;
 using DentalERP.Modules.Purchasing.Services;
@@ -33,7 +34,8 @@ public sealed class CreateGoodsReceiptCommandValidator : AbstractValidator<Creat
     }
 }
 
-public sealed class CreateGoodsReceiptCommandHandler(PurchasingDbContext db, IGRNumberGenerator grNumGen)
+public sealed class CreateGoodsReceiptCommandHandler(
+    PurchasingDbContext db, IGRNumberGenerator grNumGen, IMovementNumberGenerator movNumGen)
     : IRequestHandler<CreateGoodsReceiptCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(CreateGoodsReceiptCommand request, CancellationToken cancellationToken)
@@ -54,7 +56,6 @@ public sealed class CreateGoodsReceiptCommandHandler(PurchasingDbContext db, IGR
         var gr = GoodsReceipt.Create(grNumber, request.SupplierId, request.WarehouseId,
             request.ReceiptDate, request.PoId, request.SupplierInvoiceRef, request.Notes, request.ReceivedById);
 
-        // Build GR items, create stock batches, and stock movements atomically
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         foreach (var item in request.Items)
@@ -68,9 +69,10 @@ public sealed class CreateGoodsReceiptCommandHandler(PurchasingDbContext db, IGR
                 item.UnitCost, today, item.BatchNumber, item.ExpiryDate);
             db.StockBatches.Add(batch);
 
-            // Create stock movement
+            // Create stock movement using the sequence generator
+            var movNumber = await movNumGen.GenerateAsync(cancellationToken);
             var movement = StockMovement.Create(
-                $"MOV-{DateTime.UtcNow.Year}-{Guid.NewGuid():N}"[..20],
+                movNumber,
                 item.ItemId, request.WarehouseId, "PurchaseReceipt", "in",
                 item.Quantity, batch.Id, item.UnitCost,
                 referenceId: gr.Id, referenceType: "GoodsReceipt",

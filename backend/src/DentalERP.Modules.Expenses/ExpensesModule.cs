@@ -1,5 +1,6 @@
 using DentalERP.Modules.Expenses.Endpoints;
 using DentalERP.Modules.Expenses.Infrastructure;
+using DentalERP.Modules.Expenses.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,8 @@ public static class ExpensesModule
     {
         services.AddDbContext<ExpensesDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
+        services.AddScoped<IExpenseNumberGenerator, ExpenseNumberGenerator>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ExpensesModule).Assembly));
 

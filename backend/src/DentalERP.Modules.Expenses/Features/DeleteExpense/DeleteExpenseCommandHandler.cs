@@ -1,4 +1,5 @@
-﻿using DentalERP.Modules.Expenses.Infrastructure;
+﻿using DentalERP.Modules.Expenses.Domain.Internal;
+using DentalERP.Modules.Expenses.Infrastructure;
 using DentalERP.SharedKernel.Abstractions;
 using DentalERP.SharedKernel.Results;
 using MediatR;
@@ -17,9 +18,24 @@ internal sealed class DeleteExpenseCommandHandler : IRequestHandler<DeleteExpens
         if (expense is null)
             return Result.Failure(Error.NotFound("Expense"));
 
+        if (expense.VaultId.HasValue)
+        {
+            _db.VaultTransactions.Add(new VaultTransactionEntry
+            {
+                Id              = Guid.NewGuid(),
+                VaultId         = expense.VaultId.Value,
+                TransactionType = "general_payment",
+                Amount          = expense.Amount,
+                Direction       = "in",
+                Notes           = $"Expense reversal: {expense.ExpenseNumber} deleted",
+                CreatedByUserId = null,
+                CreatedAt       = DateTime.UtcNow
+            });
+        }
+
         expense.Delete();
 
-        _db.AuditLogs.Add(new DentalERP.SharedKernel.Abstractions.AuditLogEntry
+        _db.AuditLogEntries.Add(new DentalERP.SharedKernel.Abstractions.AuditLogEntry
         {
             EntityType = "Expense",
             EntityId = expense.Id,

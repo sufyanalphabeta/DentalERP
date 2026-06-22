@@ -5,6 +5,7 @@ using DentalERP.Modules.Expenses.Features.GenerateExpenseReport;
 using DentalERP.Modules.Expenses.Features.GetExpenseCategories;
 using DentalERP.Modules.Expenses.Features.GetExpenseDetail;
 using DentalERP.Modules.Expenses.Features.GetExpenses;
+using DentalERP.Modules.Expenses.Features.GetExpenseVoucher;
 using DentalERP.Modules.Expenses.Features.UpdateExpense;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -69,6 +70,15 @@ internal static class ExpensesEndpoints
             var result = await mediator.Send(new DeleteExpenseCommand(id));
             return result.IsSuccess ? Results.NoContent() : Results.NotFound(result.Error);
         }).WithName("DeleteExpense");
+
+        // Single-expense PDF voucher
+        grp.MapGet("/{id:guid}/voucher", async (Guid id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new GetExpenseVoucherQuery(id));
+            return result.IsSuccess
+                ? Results.File(result.Value, "application/pdf", $"expense-voucher-{id}.pdf")
+                : Results.NotFound(result.Error);
+        }).WithName("GetExpenseVoucher");
 
         // PDF Report
         grp.MapGet("/report/pdf", async (DateOnly dateFrom, DateOnly dateTo,

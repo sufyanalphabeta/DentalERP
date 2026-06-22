@@ -34,8 +34,8 @@ export default function ServicesPage() {
     setLoading(true);
     try {
       const [svcRes, catRes] = await Promise.all([
-        api.get<Service[]>("/api/services"),
-        api.get<Category[]>("/api/services/categories"),
+        api.get<Service[]>("/services"),
+        api.get<Category[]>("/services/categories"),
       ]);
       setServices(svcRes.data);
       setCategories(catRes.data);
@@ -70,9 +70,9 @@ export default function ServicesPage() {
         isActive: form.isActive,
       };
       if (editing) {
-        await api.put(`/api/services/${editing.id}`, payload);
+        await api.put(`/services/${editing.id}`, payload);
       } else {
-        await api.post("/api/services", payload);
+        await api.post("/services", payload);
       }
       setShowModal(false);
       load();

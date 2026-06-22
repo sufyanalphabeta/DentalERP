@@ -1,8 +1,6 @@
 using DentalERP.Modules.Inventory.Features.AddItemBarcode;
-using DentalERP.Modules.Inventory.Features.CreateAdjustment;
 using DentalERP.Modules.Inventory.Features.CreateItem;
 using DentalERP.Modules.Inventory.Features.CreateItemCategory;
-using DentalERP.Modules.Inventory.Features.CreateManualIssue;
 using DentalERP.Modules.Inventory.Features.CreateWarehouse;
 using DentalERP.Modules.Inventory.Features.GetItemCategories;
 using DentalERP.Modules.Inventory.Features.GetItemDetail;
@@ -12,10 +10,12 @@ using DentalERP.Modules.Inventory.Features.GetStockAlerts;
 using DentalERP.Modules.Inventory.Features.GetUnitsOfMeasure;
 using DentalERP.Modules.Inventory.Features.GetWarehouses;
 using DentalERP.Modules.Inventory.Features.LookupItemByBarcode;
+using DentalERP.Modules.Inventory.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace DentalERP.Modules.Inventory.Endpoints;
 
@@ -25,7 +25,7 @@ public static class InventoryEndpoints
     {
         var inv = app.MapGroup("/api/inventory").RequireAuthorization();
 
-        // Items
+        // ── Items (Master Data) ──────────────────────────────────────────────
         inv.MapGet("/items", async (IMediator mediator,
             string? search, Guid? categoryId, string? barcode,
             bool? lowStock, bool? activeOnly, int page = 1, int pageSize = 20) =>
@@ -37,7 +37,9 @@ public static class InventoryEndpoints
         inv.MapPost("/items", async (IMediator mediator, CreateItemCommand cmd) =>
         {
             var r = await mediator.Send(cmd);
-            return r.IsSuccess ? Results.Created($"/api/inventory/items/{r.Value}", new { id = r.Value }) : Results.BadRequest(r.Error);
+            return r.IsSuccess
+                ? Results.Created($"/api/inventory/items/{r.Value}", new { id = r.Value })
+                : Results.BadRequest(r.Error);
         });
 
         inv.MapGet("/items/{id:guid}", async (IMediator mediator, Guid id) =>
@@ -52,32 +54,40 @@ public static class InventoryEndpoints
             return r.IsSuccess ? Results.Ok(r.Value) : Results.NotFound(r.Error);
         });
 
+        // Update item master data only — stock quantities are read-only here
+        inv.MapPut("/items/{id:guid}", async (InventoryDbContext db, Guid id, UpdateItemRequest req, CancellationToken ct) =>
+        {
+            var item = await db.Items.FirstOrDefaultAsync(i => i.Id == id, ct);
+            if (item is null) return Results.NotFound();
+            if (string.IsNullOrWhiteSpace(req.Name)) return Results.BadRequest(new { error = "اسم الصنف مطلوب" });
+
+            item.Update(req.Name, req.NameAr, req.CategoryId, req.UnitOfMeasureId,
+                req.ReorderLevel, req.ReorderQuantity, req.IsExpiryTracked,
+                req.AllowNegativeStock, req.StorageConditions, req.Notes);
+
+            if (req.UnitCost.HasValue)   item.UpdateCost(req.UnitCost.Value);
+            if (req.SalePrice.HasValue)  item.UpdateSalePrice(req.SalePrice.Value);
+
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
+
         inv.MapPost("/items/{id:guid}/barcodes", async (IMediator mediator, Guid id, AddItemBarcodeCommand cmd) =>
         {
             var r = await mediator.Send(cmd with { ItemId = id });
-            return r.IsSuccess ? Results.Created($"/api/inventory/items/{id}/barcodes/{r.Value}", new { id = r.Value }) : Results.BadRequest(r.Error);
+            return r.IsSuccess
+                ? Results.Created($"/api/inventory/items/{id}/barcodes/{r.Value}", new { id = r.Value })
+                : Results.BadRequest(r.Error);
         });
 
-        inv.MapPost("/items/{id:guid}/adjust", async (IMediator mediator, Guid id, CreateAdjustmentCommand cmd) =>
-        {
-            var r = await mediator.Send(cmd with { ItemId = id });
-            return r.IsSuccess ? Results.Ok(new { id = r.Value }) : Results.BadRequest(r.Error);
-        });
-
-        // Stock
+        // ── Stock (read-only) ────────────────────────────────────────────────
         inv.MapGet("/stock/alerts", async (IMediator mediator) =>
         {
             var r = await mediator.Send(new GetStockAlertsQuery());
             return r.IsSuccess ? Results.Ok(r.Value) : Results.BadRequest(r.Error);
         });
 
-        inv.MapPost("/stock/issue", async (IMediator mediator, CreateManualIssueCommand cmd) =>
-        {
-            var r = await mediator.Send(cmd);
-            return r.IsSuccess ? Results.Ok(new { id = r.Value }) : Results.BadRequest(r.Error);
-        });
-
-        // Movements
+        // ── Stock Movements (read-only log) ──────────────────────────────────
         inv.MapGet("/movements", async (IMediator mediator,
             Guid? itemId, string? movementType, string? destinationType,
             Guid? destinationId, DateTime? from, DateTime? to, int page = 1, int pageSize = 30) =>
@@ -86,7 +96,7 @@ public static class InventoryEndpoints
             return r.IsSuccess ? Results.Ok(r.Value) : Results.BadRequest(r.Error);
         });
 
-        // Warehouses
+        // ── Warehouses ───────────────────────────────────────────────────────
         inv.MapGet("/warehouses", async (IMediator mediator) =>
         {
             var r = await mediator.Send(new GetWarehousesQuery());
@@ -96,10 +106,12 @@ public static class InventoryEndpoints
         inv.MapPost("/warehouses", async (IMediator mediator, CreateWarehouseCommand cmd) =>
         {
             var r = await mediator.Send(cmd);
-            return r.IsSuccess ? Results.Created($"/api/inventory/warehouses/{r.Value}", new { id = r.Value }) : Results.BadRequest(r.Error);
+            return r.IsSuccess
+                ? Results.Created($"/api/inventory/warehouses/{r.Value}", new { id = r.Value })
+                : Results.BadRequest(r.Error);
         });
 
-        // Categories
+        // ── Item Categories ──────────────────────────────────────────────────
         inv.MapGet("/item-categories", async (IMediator mediator) =>
         {
             var r = await mediator.Send(new GetItemCategoriesQuery());
@@ -109,10 +121,31 @@ public static class InventoryEndpoints
         inv.MapPost("/item-categories", async (IMediator mediator, CreateItemCategoryCommand cmd) =>
         {
             var r = await mediator.Send(cmd);
-            return r.IsSuccess ? Results.Created($"/api/inventory/item-categories/{r.Value}", new { id = r.Value }) : Results.BadRequest(r.Error);
+            return r.IsSuccess
+                ? Results.Created($"/api/inventory/item-categories/{r.Value}", new { id = r.Value })
+                : Results.BadRequest(r.Error);
         });
 
-        // Units of Measure
+        inv.MapPut("/item-categories/{id:guid}", async (InventoryDbContext db, Guid id, UpdateCategoryRequest req, CancellationToken ct) =>
+        {
+            var cat = await db.ItemCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
+            if (cat is null) return Results.NotFound();
+            if (string.IsNullOrWhiteSpace(req.Name)) return Results.BadRequest(new { error = "اسم الفئة مطلوب" });
+            cat.Update(req.Name, req.NameAr, cat.ParentId);
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
+
+        inv.MapDelete("/item-categories/{id:guid}", async (InventoryDbContext db, Guid id, CancellationToken ct) =>
+        {
+            var cat = await db.ItemCategories.FirstOrDefaultAsync(c => c.Id == id, ct);
+            if (cat is null) return Results.NotFound();
+            cat.Delete();
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
+
+        // ── Units of Measure ─────────────────────────────────────────────────
         inv.MapGet("/units-of-measure", async (IMediator mediator) =>
         {
             var r = await mediator.Send(new GetUnitsOfMeasureQuery());
@@ -122,3 +155,13 @@ public static class InventoryEndpoints
         return app;
     }
 }
+
+file sealed record UpdateItemRequest(
+    string Name, string? NameAr,
+    Guid? CategoryId, Guid? UnitOfMeasureId,
+    decimal ReorderLevel, decimal ReorderQuantity,
+    bool IsExpiryTracked, bool AllowNegativeStock,
+    string? StorageConditions, string? Notes,
+    decimal? UnitCost, decimal? SalePrice);
+
+file sealed record UpdateCategoryRequest(string Name, string? NameAr);

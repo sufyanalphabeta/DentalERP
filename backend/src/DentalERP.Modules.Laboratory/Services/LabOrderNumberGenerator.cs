@@ -8,9 +8,9 @@ public sealed class LabOrderNumberGenerator(LaboratoryDbContext db) : ILabOrderN
     public async Task<string> GenerateAsync(CancellationToken ct = default)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await db.LabOrders
-            .IgnoreQueryFilters()
-            .CountAsync(o => o.CreatedAt.Year == year, ct);
-        return $"LAB-{year}-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('lab_order_number_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"LAB-{year}-{seq:D6}";
     }
 }

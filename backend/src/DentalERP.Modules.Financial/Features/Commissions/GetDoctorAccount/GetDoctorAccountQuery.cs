@@ -10,14 +10,18 @@ public sealed record GetDoctorAccountQuery(
 
 public sealed record DoctorAccountDto(
     Guid DoctorId,
-    decimal TotalCommissionDue,
-    decimal TotalCommissionPaid,
-    decimal RemainingCommission,
-    List<CommissionLineDto> Records);
+    string DoctorName,
+    string CommissionMethod,
+    decimal DefaultCommissionValue,
+    decimal TotalUnpaid,
+    decimal TotalPaid,
+    List<CommissionLineDto> Commissions);
 
 public sealed record CommissionLineDto(
     Guid Id,
     Guid InvoiceId,
+    string InvoiceNumber,
+    Guid PaymentId,
     string CommissionMethod,
     decimal BaseAmount,
     decimal CommissionRate,

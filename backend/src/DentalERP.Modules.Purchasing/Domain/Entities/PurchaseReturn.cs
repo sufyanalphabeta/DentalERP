@@ -68,4 +68,16 @@ public sealed class PurchaseReturn : BaseEntity
         Touch();
         return Result.Success();
     }
+
+    public Result Cancel()
+    {
+        if (Status == "Cancelled")
+            return Result.Failure(new Error("PurchaseReturn.AlreadyCancelled", "Return is already cancelled."));
+        if (Status == "Completed")
+            return Result.Failure(new Error("PurchaseReturn.CannotCancelCompleted", "Cannot cancel a completed return."));
+
+        Status = "Cancelled";
+        Touch();
+        return Result.Success();
+    }
 }

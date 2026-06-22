@@ -7,7 +7,9 @@ public sealed class ItemCodeGenerator(InventoryDbContext db) : IItemCodeGenerato
 {
     public async Task<string> GenerateAsync(CancellationToken ct = default)
     {
-        var count = await db.Items.IgnoreQueryFilters().CountAsync(ct);
-        return $"ITM-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('item_code_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"ITM-{seq:D6}";
     }
 }

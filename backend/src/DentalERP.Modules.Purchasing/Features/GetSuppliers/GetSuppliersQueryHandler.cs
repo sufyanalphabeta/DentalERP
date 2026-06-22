@@ -58,9 +58,17 @@ public sealed class GetSuppliersQueryHandler(PurchasingDbContext db)
             .Select(g => new { SupplierId = g.Key, Total = g.Sum(x => x.TotalAmount) })
             .ToDictionaryAsync(g => g.SupplierId, g => g.Total, cancellationToken);
 
+        var piTotals = await db.PurchaseInvoices
+            .Where(p => ids.Contains(p.SupplierId) && p.Status == "Posted" && p.DeletedAt == null)
+            .GroupBy(p => p.SupplierId)
+            .Select(g => new { SupplierId = g.Key, Total = g.Sum(x => x.NetTotal) })
+            .ToDictionaryAsync(g => g.SupplierId, g => g.Total, cancellationToken);
+
         var result = suppliers.Select(s =>
         {
-            var balance = grTotals.GetValueOrDefault(s.Id, 0)
+            var balance = s.OpeningBalance
+                        + grTotals.GetValueOrDefault(s.Id, 0)
+                        + piTotals.GetValueOrDefault(s.Id, 0)
                         - paymentTotals.GetValueOrDefault(s.Id, 0)
                         - returnTotals.GetValueOrDefault(s.Id, 0);
             return new SupplierListItem(s.Id, s.SupplierCode, s.Name, s.NameAr, s.Category, s.Phone, s.Email, s.IsActive, balance);

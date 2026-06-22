@@ -1,5 +1,6 @@
 using DentalERP.Modules.Assets.Endpoints;
 using DentalERP.Modules.Assets.Infrastructure;
+using DentalERP.Modules.Assets.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ public static class AssetsModule
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssetsModule).Assembly));
+        services.AddScoped<IAssetTagGenerator, AssetTagGenerator>();
 
         return services;
     }

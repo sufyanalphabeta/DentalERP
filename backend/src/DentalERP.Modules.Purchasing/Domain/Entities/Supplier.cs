@@ -19,6 +19,7 @@ public sealed class Supplier : BaseEntity
     public decimal CreditLimit { get; private set; }
     public bool IsActive { get; private set; } = true;
     public string? Notes { get; private set; }
+    public decimal OpeningBalance { get; private set; }
 
     private readonly List<SupplierItem> _items = [];
     public IReadOnlyList<SupplierItem> Items => _items;
@@ -28,7 +29,7 @@ public sealed class Supplier : BaseEntity
     public static Supplier Create(string supplierCode, string name, string? nameAr = null,
         string? category = null, string? contactPerson = null, string? phone = null,
         string? email = null, string? address = null, int paymentTermsDays = 30,
-        decimal creditLimit = 0, string? notes = null)
+        decimal creditLimit = 0, string? notes = null, decimal openingBalance = 0)
     {
         if (category != null && !ValidCategories.Contains(category))
             throw new ArgumentException($"Invalid supplier category: {category}. Valid: {string.Join(", ", ValidCategories)}");
@@ -47,13 +48,15 @@ public sealed class Supplier : BaseEntity
             PaymentTermsDays = paymentTermsDays,
             CreditLimit = creditLimit,
             Notes = notes,
+            OpeningBalance = openingBalance,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
     }
 
     public void Update(string name, string? nameAr, string? category, string? contactPerson,
-        string? phone, string? email, string? address, int paymentTermsDays, decimal creditLimit, string? notes)
+        string? phone, string? email, string? address, int paymentTermsDays, decimal creditLimit,
+        string? notes, decimal openingBalance)
     {
         if (category != null && !ValidCategories.Contains(category))
             throw new ArgumentException($"Invalid supplier category: {category}");
@@ -68,6 +71,7 @@ public sealed class Supplier : BaseEntity
         PaymentTermsDays = paymentTermsDays;
         CreditLimit = creditLimit;
         Notes = notes;
+        OpeningBalance = openingBalance;
         Touch();
     }
 

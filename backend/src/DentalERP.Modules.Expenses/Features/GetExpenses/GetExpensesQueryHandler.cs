@@ -31,16 +31,19 @@ internal sealed class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery
         var categories = await _db.ExpenseCategories.AsNoTracking()
             .ToDictionaryAsync(x => x.Id, x => x.Name, ct);
 
-        var items = await query
+        var rawItems = await query
             .OrderByDescending(x => x.ExpenseDate)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(x => new ExpenseListDto(
+            .ToListAsync(ct);
+
+        var items = rawItems.Select(x => new ExpenseListDto(
                 x.Id, x.ExpenseNumber,
                 x.CategoryId.HasValue && categories.ContainsKey(x.CategoryId.Value) ? categories[x.CategoryId.Value] : null,
                 x.CostCenter, x.ExpenseDate, x.Amount, x.Description,
-                x.RelatedModule, x.RelatedEntityId, x.CreatedAt))
-            .ToListAsync(ct);
+                x.RelatedModule, x.RelatedEntityId, x.CreatedAt,
+                x.VaultId, x.CategoryId))
+            .ToList();
 
         return Result.Success(new GetExpensesResult(items, total, request.Page, request.PageSize));
     }

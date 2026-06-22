@@ -5,6 +5,7 @@ using DentalERP.Modules.Purchasing.Features.GetSupplierDetail;
 using DentalERP.Modules.Purchasing.Features.GetSupplierItemCatalog;
 using DentalERP.Modules.Purchasing.Features.GetSuppliers;
 using DentalERP.Modules.Purchasing.Features.GetSupplierStatement;
+using DentalERP.Modules.Purchasing.Features.GetSupplierStatementPdf;
 using DentalERP.Modules.Purchasing.Features.LookupBySupplierCode;
 using DentalERP.Modules.Purchasing.Features.UpdateSupplier;
 using MediatR;
@@ -54,10 +55,26 @@ public static class SupplierEndpoints
         });
 
         sup.MapGet("/{id:guid}/statement", async (IMediator mediator, Guid id,
-            DateTime? from, DateTime? to) =>
+            DateOnly? from, DateOnly? to) =>
         {
-            var r = await mediator.Send(new GetSupplierStatementQuery(id, from, to));
+            var fromDt = from.HasValue
+                ? new DateTime(from.Value.Year, from.Value.Month, from.Value.Day, 0, 0, 0, DateTimeKind.Utc)
+                : (DateTime?)null;
+            var toDt = to.HasValue
+                ? new DateTime(to.Value.Year, to.Value.Month, to.Value.Day, 23, 59, 59, DateTimeKind.Utc)
+                : (DateTime?)null;
+            var r = await mediator.Send(new GetSupplierStatementQuery(id, fromDt, toDt));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.NotFound(r.Error);
+        });
+
+        sup.MapGet("/{id:guid}/statement/pdf", async (IMediator mediator, Guid id, DateOnly? from, DateOnly? to, string? clinicName) =>
+        {
+            var fromDt = from.HasValue ? new DateTime(from.Value.Year, from.Value.Month, from.Value.Day, 0, 0, 0, DateTimeKind.Utc) : (DateTime?)null;
+            var toDt = to.HasValue ? new DateTime(to.Value.Year, to.Value.Month, to.Value.Day, 23, 59, 59, DateTimeKind.Utc) : (DateTime?)null;
+            var r = await mediator.Send(new GetSupplierStatementPdfQuery(id, fromDt, toDt, clinicName ?? "عيادة الأسنان"));
+            return r.IsSuccess
+                ? Results.File(r.Value, "application/pdf", $"supplier-statement-{id}.pdf")
+                : Results.NotFound(r.Error);
         });
 
         sup.MapGet("/{id:guid}/catalog", async (IMediator mediator, Guid id) =>

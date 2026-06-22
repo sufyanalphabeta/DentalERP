@@ -23,6 +23,7 @@ public sealed class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
         builder.Property(x => x.CreditLimit).HasColumnName("credit_limit").HasColumnType("decimal(12,2)");
         builder.Property(x => x.IsActive).HasColumnName("is_active");
         builder.Property(x => x.Notes).HasColumnName("notes");
+        builder.Property(x => x.OpeningBalance).HasColumnName("opening_balance").HasColumnType("decimal(12,2)").HasDefaultValue(0m);
         builder.Property(x => x.CreatedAt).HasColumnName("created_at");
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at");
         builder.Property(x => x.DeletedAt).HasColumnName("deleted_at");

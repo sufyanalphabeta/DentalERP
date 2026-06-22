@@ -13,7 +13,7 @@ public sealed record LabOrderDetailDto(
     Guid Id,
     string OrderNumber,
     Guid PatientId,
-    Guid DoctorId,
+    Guid? DoctorId,
     Guid? LabId,
     string? LabName,
     Guid? ClientId,

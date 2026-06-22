@@ -1,5 +1,6 @@
 using DentalERP.Modules.Patients.Endpoints;
 using DentalERP.Modules.Patients.Infrastructure;
+using DentalERP.Modules.Patients.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -22,6 +23,7 @@ public static class PatientsModule
             cfg.RegisterServicesFromAssembly(typeof(PatientsModule).Assembly));
 
         services.AddValidatorsFromAssembly(typeof(PatientsModule).Assembly);
+        services.AddScoped<IPatientFileNumberGenerator, PatientFileNumberGenerator>();
 
         return services;
     }

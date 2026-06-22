@@ -8,8 +8,9 @@ public sealed class InsuranceClaimNumberGenerator(FinancialDbContext db) : IInsu
     public async Task<string> GenerateAsync(CancellationToken cancellationToken = default)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await db.InsuranceClaims
-            .CountAsync(c => c.ClaimDate.Year == year, cancellationToken);
-        return $"INS-{year}-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('insurance_claim_number_seq') AS \"Value\"")
+            .FirstAsync(cancellationToken);
+        return $"INS-{year}-{seq:D6}";
     }
 }

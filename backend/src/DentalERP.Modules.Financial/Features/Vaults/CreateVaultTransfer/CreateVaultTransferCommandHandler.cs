@@ -1,12 +1,13 @@
 using DentalERP.Modules.Financial.Domain.Entities;
 using DentalERP.Modules.Financial.Infrastructure;
+using DentalERP.Modules.Financial.Services;
 using DentalERP.SharedKernel.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace DentalERP.Modules.Financial.Features.Vaults.CreateVaultTransfer;
 
-public sealed class CreateVaultTransferCommandHandler(FinancialDbContext db)
+public sealed class CreateVaultTransferCommandHandler(FinancialDbContext db, IVaultTransferNumberGenerator numGen)
     : IRequestHandler<CreateVaultTransferCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(CreateVaultTransferCommand request, CancellationToken cancellationToken)
@@ -19,9 +20,7 @@ public sealed class CreateVaultTransferCommandHandler(FinancialDbContext db)
         if (toVault is null)
             return Result.Failure<Guid>(new Error("Vault.NotFound", "Destination vault not found."));
 
-        var year = DateTime.UtcNow.Year;
-        var count = await db.VaultTransfers.CountAsync(t => t.TransferDate.Year == year, cancellationToken);
-        var transferNumber = $"TRF-{year}-{count + 1:D6}";
+        var transferNumber = await numGen.GenerateAsync(DateTime.UtcNow.Year, cancellationToken);
 
         var transferResult = VaultTransfer.Create(transferNumber, request.FromVaultId,
             request.ToVaultId, request.Amount, request.Notes, request.TransferredById);

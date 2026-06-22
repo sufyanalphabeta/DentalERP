@@ -8,9 +8,9 @@ public sealed class InvoiceNumberGenerator(FinancialDbContext db) : IInvoiceNumb
     public async Task<string> GenerateAsync(CancellationToken ct = default)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await db.Invoices
-            .IgnoreQueryFilters()
-            .CountAsync(i => i.CreatedAt.Year == year, ct);
-        return $"INV-{year}-{(count + 1):D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('invoice_number_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"INV-{year}-{seq:D6}";
     }
 }

@@ -18,6 +18,7 @@ public sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.Property(x => x.CategoryId).HasColumnName("category_id");
         builder.Property(x => x.UnitOfMeasureId).HasColumnName("unit_of_measure_id");
         builder.Property(x => x.UnitCost).HasColumnName("unit_cost").HasColumnType("decimal(10,2)");
+        builder.Property(x => x.SalePrice).HasColumnName("sale_price").HasColumnType("decimal(10,2)");
         builder.Property(x => x.ReorderLevel).HasColumnName("reorder_level").HasColumnType("decimal(10,3)");
         builder.Property(x => x.ReorderQuantity).HasColumnName("reorder_quantity").HasColumnType("decimal(10,3)");
         builder.Property(x => x.IsExpiryTracked).HasColumnName("is_expiry_tracked");

@@ -67,7 +67,7 @@ public sealed class GetItemDetailQueryHandler(InventoryDbContext db)
         return Result.Success(new ItemDetailDto(
             item.Id, item.ItemCode, item.Barcode, item.Name, item.NameAr,
             item.CategoryId, categoryName, item.UnitOfMeasureId, uomName,
-            item.UnitCost, item.ReorderLevel, item.ReorderQuantity,
+            item.UnitCost, item.SalePrice, item.ReorderLevel, item.ReorderQuantity,
             item.IsExpiryTracked, item.AllowNegativeStock,
             item.StorageConditions, item.IsActive, item.Notes,
             currentStock, currentStock,

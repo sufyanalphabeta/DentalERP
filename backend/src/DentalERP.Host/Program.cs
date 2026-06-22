@@ -64,6 +64,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "DentalERP API", Version = "v1" });
+    c.CustomSchemaIds(type => type.FullName!.Replace('+', '.'));
     c.AddSecurityDefinition("Bearer", new()
     {
         Name = "Authorization",

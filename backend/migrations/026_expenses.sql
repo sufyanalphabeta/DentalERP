@@ -1,11 +1,13 @@
--- Migration 026: Audit Logs, Cost Centers, Expense Categories, Expenses
+-- Migration 026: Audit Log Entries, Cost Centers, Expense Categories, Expenses
+-- NOTE: 'audit_logs' table already exists from migration 003 with a different schema (IAM module).
+--       This migration uses 'audit_log_entries' for Phase 6 modules (Expenses, Assets).
 
 BEGIN;
 
 -- -------------------------------------------------------
--- Audit Logs (global — written by all modules)
+-- Audit Log Entries (Phase 6 modules: Expenses, Assets)
 -- -------------------------------------------------------
-CREATE TABLE IF NOT EXISTS audit_logs (
+CREATE TABLE IF NOT EXISTS audit_log_entries (
     id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     entity_type     VARCHAR(100) NOT NULL,
     entity_id       UUID         NOT NULL,
@@ -15,9 +17,9 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS ix_audit_logs_entity   ON audit_logs(entity_type, entity_id);
-CREATE INDEX IF NOT EXISTS ix_audit_logs_created  ON audit_logs(created_at DESC);
-CREATE INDEX IF NOT EXISTS ix_audit_logs_actor    ON audit_logs(performed_by_id);
+CREATE INDEX IF NOT EXISTS ix_audit_log_entries_entity   ON audit_log_entries(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS ix_audit_log_entries_created  ON audit_log_entries(created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_audit_log_entries_actor    ON audit_log_entries(performed_by_id);
 
 -- -------------------------------------------------------
 -- Cost Centers (lightweight — used by Expenses + Assets)

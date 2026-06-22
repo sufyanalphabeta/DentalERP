@@ -8,8 +8,8 @@ public sealed record GetInvoiceQuery(Guid InvoiceId) : IRequest<Result<InvoiceDe
 public sealed record InvoiceDetailDto(
     Guid Id,
     string InvoiceNumber,
-    Guid PatientId,
-    Guid DoctorId,
+    string PatientName,
+    string DoctorName,
     string Status,
     decimal Subtotal,
     decimal DiscountTotal,
@@ -18,6 +18,7 @@ public sealed record InvoiceDetailDto(
     decimal Remaining,
     string Currency,
     string? Notes,
+    string? CancelledReason,
     DateTime CreatedAt,
     List<InvoiceItemDto> Items,
     List<PaymentDto> Payments);

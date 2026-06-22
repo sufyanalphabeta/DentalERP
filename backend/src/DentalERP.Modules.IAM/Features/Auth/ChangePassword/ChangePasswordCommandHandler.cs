@@ -20,7 +20,7 @@ public sealed class ChangePasswordCommandHandler(IAMDbContext db, ICurrentUser c
         if (request.NewPassword != request.ConfirmPassword)
             return Result.Failure(new Error("Auth.PasswordMismatch", "New password and confirmation do not match."));
 
-        user.ChangePassword(BCrypt.Net.BCrypt.HashPassword(request.NewPassword));
+        user.ChangePassword(BCrypt.Net.BCrypt.HashPassword(request.NewPassword), clearMustChange: true);
         await db.SaveChangesAsync(ct);
         return Result.Success();
     }

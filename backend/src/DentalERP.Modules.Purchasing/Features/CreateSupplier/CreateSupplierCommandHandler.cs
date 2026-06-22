@@ -10,7 +10,8 @@ namespace DentalERP.Modules.Purchasing.Features.CreateSupplier;
 public sealed record CreateSupplierCommand(
     string Name, string? NameAr, string? Category,
     string? ContactPerson, string? Phone, string? Email, string? Address,
-    int PaymentTermsDays, decimal CreditLimit, string? Notes) : IRequest<Result<Guid>>;
+    int PaymentTermsDays, decimal CreditLimit, string? Notes,
+    decimal OpeningBalance = 0) : IRequest<Result<Guid>>;
 
 public sealed class CreateSupplierCommandValidator : AbstractValidator<CreateSupplierCommand>
 {
@@ -30,7 +31,7 @@ public sealed class CreateSupplierCommandHandler(PurchasingDbContext db, ISuppli
         var code = await codeGen.GenerateAsync(cancellationToken);
         var supplier = Supplier.Create(code, request.Name, request.NameAr, request.Category,
             request.ContactPerson, request.Phone, request.Email, request.Address,
-            request.PaymentTermsDays, request.CreditLimit, request.Notes);
+            request.PaymentTermsDays, request.CreditLimit, request.Notes, request.OpeningBalance);
 
         db.Suppliers.Add(supplier);
         await db.SaveChangesAsync(cancellationToken);

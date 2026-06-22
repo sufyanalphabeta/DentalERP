@@ -11,19 +11,17 @@ public class CreateUserCommandValidatorTests
     [Fact]
     public void Valid_Command_ShouldPass()
     {
-        var cmd = new CreateUserCommand("john_doe", "StrongPass1", "John Doe", null, null, []);
+        var cmd = new CreateUserCommand("john_doe", "John Doe", null, null, []);
         var result = _validator.TestValidate(cmd);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Theory]
-    [InlineData("j", "StrongPass1", "John")]
-    [InlineData("john", "weak", "John")]
-    [InlineData("john", "nodigits", "John")]
-    [InlineData("john", "NOLOWERCASE1", "")]
-    public void Invalid_Command_ShouldFail(string username, string password, string fullName)
+    [InlineData("j", "John")]
+    [InlineData("john", "")]
+    public void Invalid_Command_ShouldFail(string username, string fullName)
     {
-        var cmd = new CreateUserCommand(username, password, fullName, null, null, []);
+        var cmd = new CreateUserCommand(username, fullName, null, null, []);
         var result = _validator.TestValidate(cmd);
         result.ShouldHaveAnyValidationError();
     }
@@ -31,7 +29,7 @@ public class CreateUserCommandValidatorTests
     [Fact]
     public void InvalidUsername_WithSpaces_ShouldFail()
     {
-        var cmd = new CreateUserCommand("john doe", "StrongPass1", "John Doe", null, null, []);
+        var cmd = new CreateUserCommand("john doe", "John Doe", null, null, []);
         var result = _validator.TestValidate(cmd);
         result.ShouldHaveValidationErrorFor(x => x.Username);
     }
@@ -39,7 +37,7 @@ public class CreateUserCommandValidatorTests
     [Fact]
     public void InvalidEmail_ShouldFail()
     {
-        var cmd = new CreateUserCommand("john", "StrongPass1", "John", "notanemail", null, []);
+        var cmd = new CreateUserCommand("john", "John", "notanemail", null, []);
         var result = _validator.TestValidate(cmd);
         result.ShouldHaveValidationErrorFor(x => x.Email);
     }

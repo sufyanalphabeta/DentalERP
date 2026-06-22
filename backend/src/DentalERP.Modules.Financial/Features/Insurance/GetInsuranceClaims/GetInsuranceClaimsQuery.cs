@@ -19,6 +19,7 @@ public sealed record InsuranceClaimSummaryDto(
     string Status,
     string InsuranceCompanyName,
     Guid PatientId,
+    string PatientName,
     decimal ClaimedAmount,
     decimal PaidAmount,
     decimal CoveragePercent,

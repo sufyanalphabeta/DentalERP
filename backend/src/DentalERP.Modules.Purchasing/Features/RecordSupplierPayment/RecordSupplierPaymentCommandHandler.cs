@@ -5,6 +5,7 @@ using DentalERP.Modules.Purchasing.Services;
 using DentalERP.SharedKernel.Results;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace DentalERP.Modules.Purchasing.Features.RecordSupplierPayment;
 
@@ -32,6 +33,16 @@ public sealed class RecordSupplierPaymentCommandHandler(
         var supplier = await db.Suppliers.FindAsync([request.SupplierId], cancellationToken);
         if (supplier is null) return Result.Failure<Guid>(Error.NotFound("Supplier"));
 
+        // Validate vault existence and active status
+        var vaultStatus = await db.Database
+            .SqlQuery<int?>($"SELECT CASE WHEN is_active THEN 1 ELSE 0 END AS \"Value\" FROM vaults WHERE id = {request.VaultId}")
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (vaultStatus is null)
+            return Result.Failure<Guid>(new Error("Vault.NotFound", "الخزينة المحددة غير موجودة."));
+        if (vaultStatus == 0)
+            return Result.Failure<Guid>(new Error("Vault.Inactive", "الخزينة المحددة غير نشطة."));
+
         var paymentNumber = await numGen.GenerateAsync(cancellationToken);
 
         var payment = SupplierPayment.Create(
@@ -39,7 +50,6 @@ public sealed class RecordSupplierPaymentCommandHandler(
             request.Amount, request.PaymentDate,
             request.ReferenceNumber, request.Notes, request.PaidById);
 
-        // Write vault transaction atomically (deduct from vault)
         var vaultTx = new VaultTransactionEntry
         {
             Id = Guid.NewGuid(),

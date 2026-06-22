@@ -1,4 +1,4 @@
-using DentalERP.Modules.Inventory.Domain.Entities;
+﻿using DentalERP.Modules.Inventory.Domain.Entities;
 using DentalERP.Modules.Purchasing.Domain.Entities;
 using DentalERP.Modules.Purchasing.Domain.Internal;
 using DentalERP.SharedKernel.Abstractions;
@@ -17,6 +17,8 @@ public sealed class PurchasingDbContext(DbContextOptions<PurchasingDbContext> op
     public DbSet<GoodsReceiptItem> GoodsReceiptItems => Set<GoodsReceiptItem>();
     public DbSet<PurchaseReturn> PurchaseReturns => Set<PurchaseReturn>();
     public DbSet<PurchaseReturnItem> PurchaseReturnItems => Set<PurchaseReturnItem>();
+    public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
+    public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
 
     // Read-only views of Inventory tables (no migration ownership)
     public DbSet<Item> Items => Set<Item>();
@@ -27,8 +29,8 @@ public sealed class PurchasingDbContext(DbContextOptions<PurchasingDbContext> op
     // Write model for vault_transactions (owned by Financial, no migration here)
     internal DbSet<VaultTransactionEntry> VaultTransactions => Set<VaultTransactionEntry>();
 
-    // Write model for audit_logs (migration 026)
-    internal DbSet<AuditLogEntry> AuditLogs => Set<AuditLogEntry>();
+    // Write model for audit_log_entries (business events — separate from IAM audit_logs)
+    internal DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +38,7 @@ public sealed class PurchasingDbContext(DbContextOptions<PurchasingDbContext> op
 
         // Soft delete filters
         modelBuilder.Entity<Supplier>().HasQueryFilter(e => e.DeletedAt == null);
+        modelBuilder.Entity<PurchaseInvoice>().HasQueryFilter(e => e.DeletedAt == null);
 
         // Inventory tables — mapped read-only (no migration ownership)
         modelBuilder.Entity<Item>().ToTable("items").HasNoKey()
@@ -43,7 +46,19 @@ public sealed class PurchasingDbContext(DbContextOptions<PurchasingDbContext> op
         modelBuilder.Entity<Item>().Property(x => x.ItemCode).HasColumnName("item_code");
         modelBuilder.Entity<Item>().Property(x => x.Name).HasColumnName("name");
         modelBuilder.Entity<Item>().Property(x => x.UnitCost).HasColumnName("unit_cost");
+        modelBuilder.Entity<Item>().Property(x => x.SalePrice).HasColumnName("sale_price");
         modelBuilder.Entity<Item>().Property(x => x.AllowNegativeStock).HasColumnName("allow_negative_stock");
+        modelBuilder.Entity<Item>().Property(x => x.Barcode).HasColumnName("barcode");
+        modelBuilder.Entity<Item>().Property(x => x.IsActive).HasColumnName("is_active");
+        modelBuilder.Entity<Item>().Property(x => x.UnitOfMeasureId).HasColumnName("unit_of_measure_id");
+        modelBuilder.Entity<Item>().Property(x => x.CategoryId).HasColumnName("category_id");
+        modelBuilder.Entity<Item>().Property(x => x.NameAr).HasColumnName("name_ar");
+        modelBuilder.Entity<Item>().Property(x => x.ReorderLevel).HasColumnName("reorder_level");
+        modelBuilder.Entity<Item>().Property(x => x.ReorderQuantity).HasColumnName("reorder_quantity");
+        modelBuilder.Entity<Item>().Property(x => x.IsExpiryTracked).HasColumnName("is_expiry_tracked");
+        modelBuilder.Entity<Item>().Property(x => x.StorageConditions).HasColumnName("storage_conditions");
+        modelBuilder.Entity<Item>().Property(x => x.Notes).HasColumnName("notes");
+        modelBuilder.Entity<Item>().Property(x => x.UpdatedAt).HasColumnName("updated_at");
         modelBuilder.Entity<Item>().Property(x => x.DeletedAt).HasColumnName("deleted_at");
         modelBuilder.Entity<Item>().Property(x => x.CreatedAt).HasColumnName("created_at");
         modelBuilder.Entity<Item>().Ignore(x => x.DomainEvents).Ignore(x => x.Barcodes);
@@ -88,7 +103,7 @@ public sealed class PurchasingDbContext(DbContextOptions<PurchasingDbContext> op
         modelBuilder.Entity<Warehouse>().Ignore(x => x.DomainEvents);
 
         // AuditLogEntry — write model for audit_logs (migration 026)
-        modelBuilder.Entity<AuditLogEntry>().ToTable("audit_logs").HasKey(x => x.Id);
+        modelBuilder.Entity<AuditLogEntry>().ToTable("audit_log_entries").HasKey(x => x.Id);
         modelBuilder.Entity<AuditLogEntry>().Property(x => x.Id).HasColumnName("id");
         modelBuilder.Entity<AuditLogEntry>().Property(x => x.EntityType).HasColumnName("entity_type");
         modelBuilder.Entity<AuditLogEntry>().Property(x => x.EntityId).HasColumnName("entity_id");
@@ -105,7 +120,7 @@ public sealed class PurchasingDbContext(DbContextOptions<PurchasingDbContext> op
         modelBuilder.Entity<VaultTransactionEntry>().Property(x => x.Amount).HasColumnName("amount").HasColumnType("decimal(12,2)");
         modelBuilder.Entity<VaultTransactionEntry>().Property(x => x.Direction).HasColumnName("direction");
         modelBuilder.Entity<VaultTransactionEntry>().Property(x => x.Notes).HasColumnName("notes");
-        modelBuilder.Entity<VaultTransactionEntry>().Property(x => x.CreatedByUserId).HasColumnName("created_by_user_id");
+        modelBuilder.Entity<VaultTransactionEntry>().Property(x => x.CreatedByUserId).HasColumnName("created_by_id");
         modelBuilder.Entity<VaultTransactionEntry>().Property(x => x.CreatedAt).HasColumnName("created_at");
     }
 }

@@ -7,10 +7,9 @@ public sealed class ChangePasswordCommandValidator : AbstractValidator<ChangePas
     public ChangePasswordCommandValidator()
     {
         RuleFor(x => x.CurrentPassword).NotEmpty();
-        RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(8)
-            .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
-            .Matches("[0-9]").WithMessage("Password must contain at least one digit.");
+        RuleFor(x => x.NewPassword).NotEmpty()
+            .Matches(@"^\d{4,8}$").WithMessage("كلمة المرور يجب أن تكون 4 إلى 8 أرقام فقط.");
         RuleFor(x => x.ConfirmPassword).NotEmpty().Equal(x => x.NewPassword)
-            .WithMessage("Passwords do not match.");
+            .WithMessage("كلمة المرور وتأكيدها غير متطابقتين.");
     }
 }

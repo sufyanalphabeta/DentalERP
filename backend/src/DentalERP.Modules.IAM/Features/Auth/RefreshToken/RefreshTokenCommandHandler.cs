@@ -37,7 +37,7 @@ public sealed class RefreshTokenCommandHandler(IAMDbContext db, JwtService jwtSe
         var newRefreshToken = jwtService.GenerateRefreshToken();
         var refreshExpiry = jwtService.RefreshTokenExpiry();
 
-        user.RevokeRefreshToken(request.RefreshToken);
+        existing.Revoke();
         user.AddRefreshToken(newRefreshToken, refreshExpiry);
 
         await db.SaveChangesAsync(ct);
@@ -49,7 +49,8 @@ public sealed class RefreshTokenCommandHandler(IAMDbContext db, JwtService jwtSe
             user.Id,
             user.Username,
             user.FullName,
-            permissions
+            permissions,
+            user.MustChangePassword
         ));
     }
 }

@@ -7,7 +7,6 @@ namespace DentalERP.Modules.IAM.Features.Users.CreateUser;
 [RequirePermission("Users.Create")]
 public sealed record CreateUserCommand(
     string Username,
-    string Password,
     string FullName,
     string? Email,
     string? Phone,

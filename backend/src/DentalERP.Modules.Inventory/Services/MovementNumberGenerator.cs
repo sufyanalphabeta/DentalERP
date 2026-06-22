@@ -8,8 +8,9 @@ public sealed class MovementNumberGenerator(InventoryDbContext db) : IMovementNu
     public async Task<string> GenerateAsync(CancellationToken ct = default)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await db.StockMovements
-            .CountAsync(m => m.CreatedAt.Year == year, ct);
-        return $"MOV-{year}-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('stock_movement_number_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"MOV-{year}-{seq:D6}";
     }
 }

@@ -54,7 +54,7 @@ internal sealed class CreateAssetMaintenanceCommandHandler : IRequestHandler<Cre
 
         _db.AssetMaintenances.Add(maintenance);
 
-        _db.AuditLogs.Add(new AuditLogEntry
+        _db.AuditLogEntries.Add(new AuditLogEntry
         {
             EntityType = "Asset", EntityId = asset.Id, Action = "Maintenance",
             PerformedById = request.CreatedById,

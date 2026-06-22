@@ -37,7 +37,7 @@ export default function NewPatientPage() {
   async function onSubmit(data: FormValues) {
     setError("");
     try {
-      await api.post("/api/patients", {
+      await api.post("/patients", {
         ...data,
         gender: data.gender || undefined,
         dateOfBirth: data.dateOfBirth || undefined,

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 
 interface PatientMedia {
@@ -60,9 +61,8 @@ export default function MediaLibraryPage() {
 
   const load = () => {
     if (!id || !token) return;
-    fetch(`/api/patients/${id}/media`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then(setMedia)
+    api.get<PatientMedia[]>(`/patients/${id}/media`)
+      .then((r) => setMedia(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   };
@@ -70,18 +70,14 @@ export default function MediaLibraryPage() {
   useEffect(load, [id, token]);
 
   const handleUpload = async () => {
-    await fetch(`/api/patients/${id}/media`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mediaType: form.mediaType,
-        fileName: form.fileName,
-        filePath: `patient-media/${id}/${form.fileName}`,
-        title: form.title || null,
-        description: form.description || null,
-        toothId: form.toothId ? parseInt(form.toothId) : null,
-        isRequired: form.isRequired,
-      }),
+    await api.post(`/patients/${id}/media`, {
+      mediaType: form.mediaType,
+      fileName: form.fileName,
+      filePath: `patient-media/${id}/${form.fileName}`,
+      title: form.title || null,
+      description: form.description || null,
+      toothId: form.toothId ? parseInt(form.toothId) : null,
+      isRequired: form.isRequired,
     });
     setShowAdd(false);
     setLoading(true);

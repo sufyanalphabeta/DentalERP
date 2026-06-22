@@ -1,12 +1,13 @@
 using DentalERP.Modules.Patients.Domain.Entities;
 using DentalERP.Modules.Patients.Infrastructure;
+using DentalERP.Modules.Patients.Services;
 using DentalERP.SharedKernel.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace DentalERP.Modules.Patients.Features.Patients.CreatePatient;
 
-public sealed class CreatePatientCommandHandler(PatientsDbContext db)
+public sealed class CreatePatientCommandHandler(PatientsDbContext db, IPatientFileNumberGenerator fileNumGen)
     : IRequestHandler<CreatePatientCommand, Result<CreatePatientResponse>>
 {
     public async Task<Result<CreatePatientResponse>> Handle(CreatePatientCommand request, CancellationToken ct)
@@ -20,7 +21,7 @@ public sealed class CreatePatientCommandHandler(PatientsDbContext db)
                     new Error("Patient.DuplicateNationalId", "رقم الهوية مسجّل مسبقاً."));
         }
 
-        var fileNumber = await GenerateFileNumberAsync(ct);
+        var fileNumber = await fileNumGen.GenerateAsync(ct);
 
         var patient = Patient.Create(
             fileNumber, request.FullName, request.Phone,
@@ -33,12 +34,5 @@ public sealed class CreatePatientCommandHandler(PatientsDbContext db)
         await db.SaveChangesAsync(ct);
 
         return Result.Success(new CreatePatientResponse(patient.Id, patient.FileNumber));
-    }
-
-    private async Task<string> GenerateFileNumberAsync(CancellationToken ct)
-    {
-        var year = DateTime.UtcNow.Year;
-        var count = await db.Patients.CountAsync(ct);
-        return $"P{year}-{(count + 1):D5}";
     }
 }

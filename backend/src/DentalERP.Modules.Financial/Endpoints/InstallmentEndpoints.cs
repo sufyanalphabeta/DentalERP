@@ -1,5 +1,6 @@
 using DentalERP.Modules.Financial.Features.AdvancePayments.CreateAdvancePayment;
 using DentalERP.Modules.Financial.Features.Installments.CreateInstallmentPlan;
+using DentalERP.Modules.Financial.Features.Installments.GetInstallmentPlans;
 using DentalERP.Modules.Financial.Features.Installments.PayInstallment;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -13,6 +14,12 @@ public static class InstallmentEndpoints
     public static IEndpointRouteBuilder MapInstallmentEndpoints(this IEndpointRouteBuilder app)
     {
         var installments = app.MapGroup("/api/installments").RequireAuthorization();
+
+        installments.MapGet("/plans", async (IMediator mediator, Guid? patientId) =>
+        {
+            var result = await mediator.Send(new GetInstallmentPlansQuery(patientId));
+            return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
+        });
 
         installments.MapPost("/plans", async (IMediator mediator, CreateInstallmentPlanCommand cmd) =>
         {

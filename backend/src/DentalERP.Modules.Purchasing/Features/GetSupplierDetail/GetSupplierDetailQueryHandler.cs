@@ -11,7 +11,7 @@ public sealed record SupplierDetailDto(
     Guid Id, string SupplierCode, string Name, string? NameAr,
     string? Category, string? ContactPerson, string? Phone, string? Email,
     string? Address, int PaymentTermsDays, decimal CreditLimit,
-    bool IsActive, string? Notes, decimal Balance,
+    bool IsActive, string? Notes, decimal OpeningBalance, decimal Balance,
     IReadOnlyList<SupplierItemDto> Items, DateTime CreatedAt, DateTime? UpdatedAt);
 
 public sealed record SupplierItemDto(
@@ -43,7 +43,11 @@ public sealed class GetSupplierDetailQueryHandler(PurchasingDbContext db)
             .Where(r => r.SupplierId == request.SupplierId && r.Status == "Confirmed")
             .SumAsync(r => r.TotalAmount, cancellationToken);
 
-        var balance = totalPurchases - totalPayments - totalReturns;
+        var totalInvoices = await db.PurchaseInvoices
+            .Where(p => p.SupplierId == request.SupplierId && p.Status == "Posted" && p.DeletedAt == null)
+            .SumAsync(p => p.NetTotal, cancellationToken);
+
+        var balance = supplier.OpeningBalance + totalPurchases + totalInvoices - totalPayments - totalReturns;
 
         // Enrich catalog items with item names
         var itemIds = supplier.Items.Select(i => i.ItemId).Distinct().ToList();
@@ -63,7 +67,7 @@ public sealed class GetSupplierDetailQueryHandler(PurchasingDbContext db)
             supplier.Id, supplier.SupplierCode, supplier.Name, supplier.NameAr,
             supplier.Category, supplier.ContactPerson, supplier.Phone, supplier.Email,
             supplier.Address, supplier.PaymentTermsDays, supplier.CreditLimit,
-            supplier.IsActive, supplier.Notes, balance, itemDtos,
+            supplier.IsActive, supplier.Notes, supplier.OpeningBalance, balance, itemDtos,
             supplier.CreatedAt, supplier.UpdatedAt));
     }
 }

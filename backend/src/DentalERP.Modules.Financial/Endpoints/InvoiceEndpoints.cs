@@ -2,6 +2,7 @@ using DentalERP.Modules.Financial.Features.Invoices.CancelInvoice;
 using DentalERP.Modules.Financial.Features.Invoices.ConfirmInvoice;
 using DentalERP.Modules.Financial.Features.Invoices.CreateInvoice;
 using DentalERP.Modules.Financial.Features.Invoices.GetInvoice;
+using DentalERP.Modules.Financial.Features.Invoices.GetInvoicePdf;
 using DentalERP.Modules.Financial.Features.Invoices.GetInvoices;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -46,6 +47,14 @@ public static class InvoiceEndpoints
         {
             var result = await mediator.Send(new CancelInvoiceCommand(id, req.Reason));
             return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
+        });
+
+        group.MapGet("/{id:guid}/pdf", async (IMediator mediator, Guid id, string? clinicName) =>
+        {
+            var result = await mediator.Send(new GetInvoicePdfQuery(id, clinicName ?? "عيادة الأسنان"));
+            return result.IsSuccess
+                ? Results.File(result.Value, "application/pdf", $"invoice-{id}.pdf")
+                : Results.NotFound(result.Error);
         });
 
         return app;

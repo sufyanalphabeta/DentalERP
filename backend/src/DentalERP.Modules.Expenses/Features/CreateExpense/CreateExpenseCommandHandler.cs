@@ -1,6 +1,7 @@
-﻿using DentalERP.Modules.Expenses.Domain.Entities;
+using DentalERP.Modules.Expenses.Domain.Entities;
 using DentalERP.Modules.Expenses.Domain.Internal;
 using DentalERP.Modules.Expenses.Infrastructure;
+using DentalERP.Modules.Expenses.Services;
 using DentalERP.SharedKernel.Abstractions;
 using DentalERP.SharedKernel.Results;
 using MediatR;
@@ -11,19 +12,36 @@ namespace DentalERP.Modules.Expenses.Features.CreateExpense;
 internal sealed class CreateExpenseCommandHandler : IRequestHandler<CreateExpenseCommand, Result<Guid>>
 {
     private readonly ExpensesDbContext _db;
-    public CreateExpenseCommandHandler(ExpensesDbContext db) => _db = db;
+    private readonly IExpenseNumberGenerator _numGen;
+
+    public CreateExpenseCommandHandler(ExpensesDbContext db, IExpenseNumberGenerator numGen)
+    {
+        _db = db;
+        _numGen = numGen;
+    }
 
     public async Task<Result<Guid>> Handle(CreateExpenseCommand request, CancellationToken ct)
     {
+        if (!request.VaultId.HasValue)
+            return Result.Failure<Guid>(Error.Validation("VaultId", "يجب تحديد الخزينة لتسجيل المصروف."));
+
         if (!Expense.ValidCostCenters.Contains(request.CostCenter))
             return Result.Failure<Guid>(Error.Validation("CostCenter", $"Invalid cost center: {request.CostCenter}"));
 
         if (request.Amount <= 0)
             return Result.Failure<Guid>(Error.Validation("Amount", "Amount must be greater than zero."));
 
-        var year = request.ExpenseDate.Year;
-        var count = await _db.Expenses.IgnoreQueryFilters().CountAsync(ct);
-        var expenseNumber = $"EXP-{year}-{(count + 1):D6}";
+        // Validate vault existence and active status
+        var vaultStatus = await _db.Database
+            .SqlQuery<int?>($"SELECT CASE WHEN is_active THEN 1 ELSE 0 END AS \"Value\" FROM vaults WHERE id = {request.VaultId.Value}")
+            .FirstOrDefaultAsync(ct);
+
+        if (vaultStatus is null)
+            return Result.Failure<Guid>(new Error("Vault.NotFound", "الخزينة المحددة غير موجودة."));
+        if (vaultStatus == 0)
+            return Result.Failure<Guid>(new Error("Vault.Inactive", "الخزينة المحددة غير نشطة."));
+
+        var expenseNumber = await _numGen.GenerateAsync(request.ExpenseDate.Year, ct);
 
         var expense = Expense.Create(
             expenseNumber, request.CategoryId, request.CostCenter,
@@ -33,23 +51,19 @@ internal sealed class CreateExpenseCommandHandler : IRequestHandler<CreateExpens
 
         _db.Expenses.Add(expense);
 
-        // Atomically write vault deduction if vault provided
-        if (request.VaultId.HasValue)
+        _db.VaultTransactions.Add(new VaultTransactionEntry
         {
-            _db.VaultTransactions.Add(new VaultTransactionEntry
-            {
-                Id = Guid.NewGuid(),
-                VaultId = request.VaultId.Value,
-                TransactionType = "general_payment",
-                Amount = request.Amount,
-                Direction = "out",
-                Notes = $"Expense: {request.Description}",
-                CreatedByUserId = request.CreatedById,
-                CreatedAt = DateTime.UtcNow
-            });
-        }
+            Id = Guid.NewGuid(),
+            VaultId = request.VaultId.Value,
+            TransactionType = "general_payment",
+            Amount = request.Amount,
+            Direction = "out",
+            Notes = $"Expense: {request.Description}",
+            CreatedByUserId = request.CreatedById,
+            CreatedAt = DateTime.UtcNow
+        });
 
-        _db.AuditLogs.Add(new DentalERP.SharedKernel.Abstractions.AuditLogEntry
+        _db.AuditLogEntries.Add(new AuditLogEntry
         {
             EntityType = "Expense",
             EntityId = expense.Id,
@@ -63,4 +77,3 @@ internal sealed class CreateExpenseCommandHandler : IRequestHandler<CreateExpens
         return Result.Success(expense.Id);
     }
 }
-

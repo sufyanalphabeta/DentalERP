@@ -11,6 +11,17 @@ export default function PatientsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [balances, setBalances] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    api.get<{ patientId: string; outstanding: number }[]>("/analytics/patient-balances")
+      .then((r) => {
+        const map: Record<string, number> = {};
+        (r.data ?? []).forEach((b) => { map[b.patientId] = b.outstanding; });
+        setBalances(map);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => fetchPatients(), 300);
@@ -22,7 +33,7 @@ export default function PatientsPage() {
     try {
       const params = new URLSearchParams({ page: String(page), pageSize: "20" });
       if (search) params.set("search", search);
-      const res = await api.get<GetPatientsResponse>(`/api/patients?${params}`);
+      const res = await api.get<GetPatientsResponse>(`/patients?${params}`);
       setData(res.data);
     } finally {
       setLoading(false);
@@ -86,7 +97,14 @@ export default function PatientsPage() {
               data?.items.map((p: PatientSummary) => (
                 <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
                   <td className="px-4 py-3 font-mono text-blue-600">{p.fileNumber}</td>
-                  <td className="px-4 py-3 font-medium">{p.fullName}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <span>{p.fullName}</span>
+                    {balances[p.id] > 0 && (
+                      <span className="mr-2 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-mono">
+                        {balances[p.id].toFixed(2)} د.ل
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-gray-600">{p.phone}</td>
                   <td className="px-4 py-3 text-gray-600">{genderLabel(p.gender)}</td>
                   <td className="px-4 py-3 text-gray-600">{p.age ?? "—"}</td>

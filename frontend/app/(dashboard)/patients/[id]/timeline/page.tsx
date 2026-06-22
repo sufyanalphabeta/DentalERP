@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 
 interface TimelineEvent {
@@ -84,11 +85,8 @@ export default function PatientTimelinePage() {
     const params = new URLSearchParams({ page: String(page), pageSize: '50' });
     if (categoryFilter) params.set('category', categoryFilter);
 
-    fetch(`/api/patients/${id}/timeline?${params}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then(setData)
+    api.get<TimelineResponse>(`/patients/${id}/timeline?${params}`)
+      .then((r) => setData(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [id, token, categoryFilter, page]);

@@ -1,4 +1,6 @@
 using DentalERP.Modules.IAM.Features.Auth.ChangePassword;
+using DentalERP.Modules.IAM.Features.Auth.ForceChangePassword;
+using DentalERP.Modules.IAM.Features.Auth.GetUsersList;
 using DentalERP.Modules.IAM.Features.Auth.Login;
 using DentalERP.Modules.IAM.Features.Auth.Logout;
 using DentalERP.Modules.IAM.Features.Auth.RefreshToken;
@@ -14,6 +16,14 @@ public static class AuthEndpoints
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/auth").WithTags("Auth");
+
+        group.MapGet("/users-list", async (ISender sender) =>
+        {
+            var result = await sender.Send(new GetUsersListQuery());
+            return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
+        })
+        .AllowAnonymous()
+        .WithSummary("Get list of active users for login dropdown");
 
         group.MapPost("/login", async (LoginCommand command, ISender sender) =>
         {
@@ -45,7 +55,15 @@ public static class AuthEndpoints
             return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
         })
         .RequireAuthorization()
-        .WithSummary("Change current user password");
+        .WithSummary("Change current user password (requires current password)");
+
+        group.MapPost("/force-change-password", async (ForceChangePasswordCommand command, ISender sender) =>
+        {
+            var result = await sender.Send(command);
+            return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
+        })
+        .RequireAuthorization()
+        .WithSummary("Force password change on first login (no current password required)");
 
         return app;
     }

@@ -11,6 +11,7 @@ public sealed class User : BaseEntity
     public string? Email { get; private set; }
     public string? Phone { get; private set; }
     public bool IsActive { get; private set; } = true;
+    public bool MustChangePassword { get; private set; } = true;
     public DateTime? LastLoginAt { get; private set; }
 
     private readonly List<UserRole> _userRoles = [];
@@ -43,9 +44,16 @@ public sealed class User : BaseEntity
         Touch();
     }
 
-    public void ChangePassword(string newHash)
+    public void ChangePassword(string newHash, bool clearMustChange = false)
     {
         PasswordHash = newHash;
+        if (clearMustChange) MustChangePassword = false;
+        Touch();
+    }
+
+    public void SetMustChangePassword(bool value)
+    {
+        MustChangePassword = value;
         Touch();
     }
 

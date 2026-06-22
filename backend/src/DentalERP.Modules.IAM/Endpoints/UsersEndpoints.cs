@@ -2,6 +2,7 @@ using DentalERP.Modules.IAM.Features.Users.CreateUser;
 using DentalERP.Modules.IAM.Features.Users.DeleteUser;
 using DentalERP.Modules.IAM.Features.Users.GetUser;
 using DentalERP.Modules.IAM.Features.Users.GetUsers;
+using DentalERP.Modules.IAM.Features.Users.ResetPassword;
 using DentalERP.Modules.IAM.Features.Users.ToggleUser;
 using DentalERP.Modules.IAM.Features.Users.UpdateUser;
 using MediatR;
@@ -60,6 +61,13 @@ public static class UsersEndpoints
             return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
         })
         .WithSummary("Enable or disable user");
+
+        group.MapPost("/{id:guid}/reset-password", async (Guid id, ISender sender) =>
+        {
+            var result = await sender.Send(new ResetPasswordCommand(id));
+            return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
+        })
+        .WithSummary("Reset user password to 123456 and force change on next login");
 
         return app;
     }

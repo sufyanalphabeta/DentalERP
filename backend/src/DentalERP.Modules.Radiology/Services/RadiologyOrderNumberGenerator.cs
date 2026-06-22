@@ -8,8 +8,9 @@ public sealed class RadiologyOrderNumberGenerator(RadiologyDbContext db) : IRadi
     public async Task<string> GenerateAsync(CancellationToken cancellationToken = default)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await db.RadiologyOrders
-            .CountAsync(o => o.OrderDate.Year == year, cancellationToken);
-        return $"RAD-{year}-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('radiology_order_number_seq') AS \"Value\"")
+            .FirstAsync(cancellationToken);
+        return $"RAD-{year}-{seq:D6}";
     }
 }

@@ -1,0 +1,207 @@
+{
+  "apiResults": [
+    {
+      "label": "patients list",
+      "url": "/patients?page=1&pageSize=10",
+      "status": 200,
+      "ok": true,
+      "preview": "{\"items\":[{\"id\":\"cf51a3d9-6c24-4d29-a117-9f941af9ee7d\",\"fileNumber\":\"P2026-00001\",\"fullName\":\"احمد\",\"phone\":\"092599999\",\"gender\":\"Male\",\"age\":0,\"isAct"
+    },
+    {
+      "label": "appointments list",
+      "url": "/appointments?page=1&pageSize=10",
+      "status": 200,
+      "ok": true,
+      "preview": "{\"items\":[],\"totalCount\":0}"
+    },
+    {
+      "label": "queue today",
+      "url": "/appointments/queue/today",
+      "status": 404,
+      "ok": false,
+      "preview": "\"\""
+    },
+    {
+      "label": "services list",
+      "url": "/services?page=1&pageSize=100",
+      "status": 200,
+      "ok": true,
+      "preview": "[]"
+    },
+    {
+      "label": "vaults list",
+      "url": "/vaults",
+      "status": 404,
+      "ok": false,
+      "preview": "\"\""
+    },
+    {
+      "label": "insurance companies",
+      "url": "/insurance-companies",
+      "status": 404,
+      "ok": false,
+      "preview": "\"\""
+    },
+    {
+      "label": "invoices list",
+      "url": "/finance/invoices?page=1&pageSize=10",
+      "status": 404,
+      "ok": false,
+      "preview": "\"\""
+    },
+    {
+      "label": "installments list",
+      "url": "/finance/installments?page=1&pageSize=10",
+      "status": 404,
+      "ok": false,
+      "preview": "\"\""
+    },
+    {
+      "label": "treasury transactions",
+      "url": "/finance/treasury?page=1&pageSize=10",
+      "status": 404,
+      "ok": false,
+      "preview": "\"\""
+    },
+    {
+      "label": "insurance claims",
+      "url": "/finance/insurance/claims?page=1&pageSize=10",
+      "status": 404,
+      "ok": false,
+      "preview": "\"\""
+    },
+    {
+      "label": "insurance receivables",
+      "url": "/finance/insurance/receivables?page=1&pageSize=10",
+      "status": 404,
+      "ok": false,
+      "preview": "\"\""
+    },
+    {
+      "label": "doctors list",
+      "url": "/doctors",
+      "status": 404,
+      "ok": false,
+      "preview": "\"\""
+    },
+    {
+      "label": "expenses list",
+      "url": "/expenses?page=1&pageSize=10",
+      "status": 200,
+      "ok": true,
+      "preview": "{\"items\":[{\"id\":\"a3000000-0000-0000-0000-000000000004\",\"expenseNumber\":\"EXP-2026-000004\",\"categoryName\":\"Maintenance\",\"costCenter\":\"CLINIC\",\"expenseDa"
+    },
+    {
+      "label": "assets list",
+      "url": "/assets?page=1&pageSize=10",
+      "status": 200,
+      "ok": true,
+      "preview": "{\"items\":[{\"id\":\"a2000000-0000-0000-0000-000000000001\",\"assetTag\":\"AST-000001\",\"name\":\"Dental Unit Chair #1\",\"categoryName\":\"Dental Equipment\",\"status"
+    }
+  ],
+  "pageResults": [
+    {
+      "path": "/",
+      "issues": [],
+      "notes": []
+    },
+    {
+      "path": "/patients",
+      "issues": [],
+      "notes": []
+    },
+    {
+      "path": "/patients/new",
+      "issues": [],
+      "notes": []
+    },
+    {
+      "path": "/appointments",
+      "issues": [],
+      "notes": [
+        "Empty state shown (normal if DB empty)"
+      ]
+    },
+    {
+      "path": "/queue",
+      "issues": [],
+      "notes": [
+        "Empty state shown (normal if DB empty)"
+      ]
+    },
+    {
+      "path": "/settings/services",
+      "issues": [],
+      "notes": [
+        "Empty state shown (normal if DB empty)"
+      ]
+    },
+    {
+      "path": "/settings/vaults",
+      "issues": [],
+      "notes": []
+    },
+    {
+      "path": "/settings/insurance",
+      "issues": [],
+      "notes": [
+        "Empty state shown (normal if DB empty)"
+      ]
+    },
+    {
+      "path": "/finance/invoices",
+      "issues": [],
+      "notes": [
+        "Empty state shown (normal if DB empty)"
+      ]
+    },
+    {
+      "path": "/finance/installments",
+      "issues": [],
+      "notes": [
+        "Empty state shown (normal if DB empty)"
+      ]
+    },
+    {
+      "path": "/finance/treasury",
+      "issues": [],
+      "notes": []
+    },
+    {
+      "path": "/finance/insurance/claims",
+      "issues": [],
+      "notes": [
+        "Empty state shown (normal if DB empty)"
+      ]
+    },
+    {
+      "path": "/finance/insurance/receivables",
+      "issues": [],
+      "notes": [
+        "Empty state shown (normal if DB empty)"
+      ]
+    }
+  ],
+  "consoleErrors": [
+    {
+      "url": "http://localhost:3000/patients",
+      "msg": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "url": "http://localhost:3000/patients",
+      "msg": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "networkErrors": [
+    {
+      "pageUrl": "http://localhost:3000/patients",
+      "reqUrl": "http://localhost:3000/patients/cf51a3d9-6c24-4d29-a117-9f941af9ee7d/edit?_rsc=TMShUqFWZraqCx6t",
+      "status": 404
+    },
+    {
+      "pageUrl": "http://localhost:3000/patients",
+      "reqUrl": "http://localhost:3000/patients/cf51a3d9-6c24-4d29-a117-9f941af9ee7d/edit?_rsc=TMShUqFWZraqCx6t",
+      "status": 404
+    }
+  ]
+}

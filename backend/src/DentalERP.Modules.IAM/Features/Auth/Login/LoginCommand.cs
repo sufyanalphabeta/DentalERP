@@ -12,5 +12,6 @@ public sealed record LoginResponse(
     Guid UserId,
     string Username,
     string FullName,
-    IReadOnlyList<string> Permissions
+    IReadOnlyList<string> Permissions,
+    bool MustChangePassword
 );

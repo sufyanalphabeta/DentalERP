@@ -24,6 +24,7 @@ public static class PurchasingModule
         services.AddScoped<IGRNumberGenerator, GRNumberGenerator>();
         services.AddScoped<IReturnNumberGenerator, ReturnNumberGenerator>();
         services.AddScoped<ISupplierPaymentNumberGenerator, SupplierPaymentNumberGenerator>();
+        services.AddScoped<IPINumberGenerator, PINumberGenerator>();
 
         return services;
     }
@@ -32,6 +33,7 @@ public static class PurchasingModule
     {
         app.MapSupplierEndpoints();
         app.MapPurchasingEndpoints();
+        app.MapPurchaseInvoiceEndpoints();
         return app;
     }
 }

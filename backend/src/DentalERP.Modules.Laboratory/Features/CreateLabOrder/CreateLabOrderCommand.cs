@@ -7,7 +7,7 @@ public sealed record CreateLabOrderItemDto(string ItemName, decimal UnitCost, sh
 
 public sealed record CreateLabOrderCommand(
     Guid PatientId,
-    Guid DoctorId,
+    Guid? DoctorId,
     Guid? LabId,
     Guid? ClientId,
     Guid? ProcedureId,
@@ -15,5 +15,6 @@ public sealed record CreateLabOrderCommand(
     DateOnly? ExpectedAt,
     string? Notes,
     List<CreateLabOrderItemDto> Items,
+    decimal? Revenue = null,
     Guid? CreatedByUserId = null
 ) : IRequest<Result<Guid>>;

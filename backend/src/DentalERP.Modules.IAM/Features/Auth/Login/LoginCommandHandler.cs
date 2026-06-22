@@ -34,10 +34,26 @@ public sealed class LoginCommandHandler(IAMDbContext db, JwtService jwtService, 
         var refreshToken = jwtService.GenerateRefreshToken();
         var refreshExpiry = jwtService.RefreshTokenExpiry();
 
-        user.RevokeAllRefreshTokens();
-        user.AddRefreshToken(refreshToken, refreshExpiry);
-        user.RecordLogin();
+        // Update last_login_at via raw SQL to avoid EF Core batch concurrency issues
+        await db.Database.ExecuteSqlRawAsync(
+            "UPDATE users SET last_login_at = {0}, updated_at = {1} WHERE id = {2}",
+            DateTime.UtcNow, DateTime.UtcNow, user.Id);
 
+        // Revoke existing refresh tokens
+        await db.Database.ExecuteSqlRawAsync(
+            "UPDATE refresh_tokens SET revoked_at = {0} WHERE user_id = {1} AND revoked_at IS NULL",
+            DateTime.UtcNow, user.Id);
+
+        // Insert new refresh token and audit log
+        db.Entry(user).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+
+        var newRefreshToken = new Domain.Entities.RefreshToken
+        {
+            UserId = user.Id,
+            Token = refreshToken,
+            ExpiresAt = refreshExpiry
+        };
+        db.Set<Domain.Entities.RefreshToken>().Add(newRefreshToken);
         db.AuditLogs.Add(auditService.CreateActionLog("Login", "User", user.Id.ToString()));
 
         await db.SaveChangesAsync(ct);
@@ -49,7 +65,8 @@ public sealed class LoginCommandHandler(IAMDbContext db, JwtService jwtService, 
             user.Id,
             user.Username,
             user.FullName,
-            permissions
+            permissions,
+            user.MustChangePassword
         ));
     }
 }

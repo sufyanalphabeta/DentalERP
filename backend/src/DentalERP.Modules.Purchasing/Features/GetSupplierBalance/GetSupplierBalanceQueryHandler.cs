@@ -9,7 +9,7 @@ public sealed record GetSupplierBalanceQuery(Guid SupplierId) : IRequest<Result<
 
 public sealed record SupplierBalanceDto(
     Guid SupplierId, string SupplierName,
-    decimal TotalPurchases, decimal TotalPayments, decimal TotalReturns, decimal Balance);
+    decimal OpeningBalance, decimal TotalPurchases, decimal TotalPayments, decimal TotalReturns, decimal Balance);
 
 public sealed class GetSupplierBalanceQueryHandler(PurchasingDbContext db)
     : IRequestHandler<GetSupplierBalanceQuery, Result<SupplierBalanceDto>>
@@ -22,21 +22,23 @@ public sealed class GetSupplierBalanceQueryHandler(PurchasingDbContext db)
 
         if (supplier is null) return Result.Failure<SupplierBalanceDto>(Error.NotFound("Supplier"));
 
-        var totalPurchases = await db.GoodsReceipts
-            .Where(g => g.SupplierId == request.SupplierId)
-            .SumAsync(g => g.TotalAmount, cancellationToken);
+        // Only Posted Purchase Invoices create supplier liability (GoodsReceipts excluded per V1 architecture)
+        var totalInvoices = await db.PurchaseInvoices
+            .Where(p => p.SupplierId == request.SupplierId && p.Status == "Posted" && p.DeletedAt == null)
+            .SumAsync(p => (decimal?)p.NetTotal ?? 0, cancellationToken);
 
         var totalPayments = await db.SupplierPayments
             .Where(p => p.SupplierId == request.SupplierId)
-            .SumAsync(p => p.Amount, cancellationToken);
+            .SumAsync(p => (decimal?)p.Amount ?? 0, cancellationToken);
 
         var totalReturns = await db.PurchaseReturns
             .Where(r => r.SupplierId == request.SupplierId && r.Status == "Confirmed")
-            .SumAsync(r => r.TotalAmount, cancellationToken);
+            .SumAsync(r => (decimal?)r.TotalAmount ?? 0, cancellationToken);
 
-        var balance = totalPurchases - totalPayments - totalReturns;
+        var balance = supplier.OpeningBalance + totalInvoices - totalPayments - totalReturns;
 
         return Result.Success(new SupplierBalanceDto(
-            supplier.Id, supplier.Name, totalPurchases, totalPayments, totalReturns, balance));
+            supplier.Id, supplier.Name, supplier.OpeningBalance,
+            totalInvoices, totalPayments, totalReturns, balance));
     }
 }

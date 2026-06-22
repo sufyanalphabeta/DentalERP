@@ -19,6 +19,7 @@ public sealed record GetExpensesResult(List<ExpenseListDto> Items, int TotalCoun
 public sealed record ExpenseListDto(
     Guid Id, string ExpenseNumber, string? CategoryName, string CostCenter,
     DateOnly ExpenseDate, decimal Amount, string Description,
-    string? RelatedModule, Guid? RelatedEntityId, DateTime CreatedAt
+    string? RelatedModule, Guid? RelatedEntityId, DateTime CreatedAt,
+    Guid? VaultId, Guid? CategoryId
 );
 

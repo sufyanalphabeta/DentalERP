@@ -8,7 +8,8 @@ namespace DentalERP.Modules.Purchasing.Features.UpdateSupplier;
 public sealed record UpdateSupplierCommand(
     Guid SupplierId, string Name, string? NameAr, string? Category,
     string? ContactPerson, string? Phone, string? Email, string? Address,
-    int PaymentTermsDays, decimal CreditLimit, string? Notes) : IRequest<Result>;
+    int PaymentTermsDays, decimal CreditLimit, string? Notes,
+    decimal OpeningBalance = 0) : IRequest<Result>;
 
 public sealed class UpdateSupplierCommandValidator : AbstractValidator<UpdateSupplierCommand>
 {
@@ -32,7 +33,7 @@ public sealed class UpdateSupplierCommandHandler(PurchasingDbContext db)
         {
             supplier.Update(request.Name, request.NameAr, request.Category, request.ContactPerson,
                 request.Phone, request.Email, request.Address, request.PaymentTermsDays,
-                request.CreditLimit, request.Notes);
+                request.CreditLimit, request.Notes, request.OpeningBalance);
         }
         catch (ArgumentException ex)
         {

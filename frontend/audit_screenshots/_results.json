@@ -1,0 +1,269 @@
+[
+  {
+    "path": "/",
+    "name": "Dashboard",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/reception",
+    "name": "Reception",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/clinical/workspace",
+    "name": "Doctor Workspace",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/finance/cashier",
+    "name": "Cashier",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/patients",
+    "name": "Patients List",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/patients/new",
+    "name": "New Patient",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/appointments",
+    "name": "Appointments",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/queue",
+    "name": "Queue",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/finance/invoices",
+    "name": "Invoices",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/finance/invoices/new",
+    "name": "New Invoice",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/finance/installments",
+    "name": "Installments",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/finance/doctors",
+    "name": "Doctor Accounts",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/treasury/movements",
+    "name": "Cash Movements",
+    "status": "API_ERR",
+    "errors": [],
+    "api": [
+      "404 GET /api/treasury/movements?page=1&pageSize=30 "
+    ]
+  },
+  {
+    "path": "/treasury/transfers",
+    "name": "Transfers",
+    "status": "API_ERR",
+    "errors": [],
+    "api": [
+      "404 GET /api/treasury/transfers "
+    ]
+  },
+  {
+    "path": "/inventory/alerts",
+    "name": "Stock Alerts",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/inventory/items",
+    "name": "Items",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/inventory/categories",
+    "name": "Item Categories",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/inventory/warehouses",
+    "name": "Warehouses",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/inventory/movements",
+    "name": "Stock Movements",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/purchasing/suppliers",
+    "name": "Suppliers",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/purchasing/orders",
+    "name": "Purchase Orders",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/purchasing/returns",
+    "name": "Purchase Returns",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/expenses",
+    "name": "Expenses",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/expenses/categories",
+    "name": "Expense Categories",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/assets",
+    "name": "Assets",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/assets/categories",
+    "name": "Asset Categories",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/lab/orders",
+    "name": "Lab Orders",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/lab/external-labs",
+    "name": "External Labs",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/radiology/orders",
+    "name": "Radiology Orders",
+    "status": "API_ERR",
+    "errors": [],
+    "api": [
+      "500 GET /api/radiology/types "
+    ]
+  },
+  {
+    "path": "/reports",
+    "name": "Reports",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/settings/users",
+    "name": "Users",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/settings/roles",
+    "name": "Roles",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/settings/doctors",
+    "name": "Settings Doctors",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/settings/services",
+    "name": "Services",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/settings/services/categories",
+    "name": "Service Categories",
+    "status": "API_ERR",
+    "errors": [],
+    "api": [
+      "405 GET /api/settings/service-categories "
+    ]
+  },
+  {
+    "path": "/settings/vaults",
+    "name": "Vaults",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  },
+  {
+    "path": "/settings/system",
+    "name": "System Settings",
+    "status": "OK",
+    "errors": [],
+    "api": []
+  }
+]

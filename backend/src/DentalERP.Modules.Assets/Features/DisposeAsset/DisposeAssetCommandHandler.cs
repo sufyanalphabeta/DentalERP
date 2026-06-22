@@ -19,7 +19,7 @@ internal sealed class DisposeAssetCommandHandler : IRequestHandler<DisposeAssetC
         var disposeResult = asset.Dispose();
         if (!disposeResult.IsSuccess) return disposeResult;
 
-        _db.AuditLogs.Add(new AuditLogEntry
+        _db.AuditLogEntries.Add(new AuditLogEntry
         {
             EntityType = "Asset", EntityId = asset.Id, Action = "Disposed",
             PerformedById = request.DisposedById,

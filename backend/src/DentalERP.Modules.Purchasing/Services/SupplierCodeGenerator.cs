@@ -7,7 +7,9 @@ public sealed class SupplierCodeGenerator(PurchasingDbContext db) : ISupplierCod
 {
     public async Task<string> GenerateAsync(CancellationToken ct = default)
     {
-        var count = await db.Suppliers.IgnoreQueryFilters().CountAsync(ct);
-        return $"SUP-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('supplier_code_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"SUP-{seq:D6}";
     }
 }

@@ -23,11 +23,21 @@ public sealed class GetInvoiceQueryHandler(FinancialDbContext db)
             .Select(p => new PaymentDto(p.Id, p.Amount, p.PaymentMethod, p.ReferenceNumber, p.CreatedAt))
             .ToListAsync(cancellationToken);
 
+        var patientName = await db.PatientNames
+            .Where(p => p.Id == invoice.PatientId)
+            .Select(p => p.FullName)
+            .FirstOrDefaultAsync(cancellationToken) ?? "—";
+
+        var doctorName = await db.UserNames
+            .Where(u => u.Id == invoice.DoctorId)
+            .Select(u => u.FullName)
+            .FirstOrDefaultAsync(cancellationToken) ?? "—";
+
         var dto = new InvoiceDetailDto(
             invoice.Id,
             invoice.InvoiceNumber,
-            invoice.PatientId,
-            invoice.DoctorId,
+            patientName,
+            doctorName,
             invoice.Status,
             invoice.Subtotal,
             invoice.DiscountTotal,
@@ -36,6 +46,7 @@ public sealed class GetInvoiceQueryHandler(FinancialDbContext db)
             invoice.Remaining,
             invoice.Currency,
             invoice.Notes,
+            invoice.CancelledReason,
             invoice.CreatedAt,
             invoice.Items.Select(i => new InvoiceItemDto(
                 i.Id, i.ServiceName, i.ServiceCode, i.Quantity,

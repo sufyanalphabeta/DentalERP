@@ -11,4 +11,5 @@ export interface LoginResponse {
   username: string;
   fullName: string;
   permissions: string[];
+  mustChangePassword: boolean;
 }

@@ -27,13 +27,14 @@ public sealed class GetSupplierStatementQueryHandler(PurchasingDbContext db)
             .FirstOrDefaultAsync(s => s.Id == request.SupplierId, cancellationToken);
         if (supplier is null) return Result.Failure<SupplierStatementDto>(Error.NotFound("Supplier"));
 
-        var from = request.From ?? DateTime.MinValue;
-        var to   = request.To   ?? DateTime.UtcNow;
+        var from = request.From ?? new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var to   = request.To   ?? DateTime.UtcNow.AddDays(1);
 
-        // Goods receipts (debit — we owe supplier)
-        var receipts = await db.GoodsReceipts
-            .Where(g => g.SupplierId == request.SupplierId && g.CreatedAt >= from && g.CreatedAt <= to)
-            .Select(g => new { g.CreatedAt, g.GrNumber, g.TotalAmount })
+        // Purchase invoices (debit — creates supplier liability)
+        var purchaseInvoices = await db.PurchaseInvoices
+            .Where(p => p.SupplierId == request.SupplierId && p.Status == "Posted"
+                        && p.DeletedAt == null && p.CreatedAt >= from && p.CreatedAt <= to)
+            .Select(p => new { p.CreatedAt, p.InvoiceNumber, p.NetTotal })
             .ToListAsync(cancellationToken);
 
         // Payments (credit — we paid supplier)
@@ -50,9 +51,9 @@ public sealed class GetSupplierStatementQueryHandler(PurchasingDbContext db)
             .ToListAsync(cancellationToken);
 
         var lines = new List<StatementLineDto>();
-        decimal running = 0;
+        decimal running = supplier.OpeningBalance;
 
-        var allEvents = receipts.Select(r => (r.CreatedAt, "GoodsReceipt", r.GrNumber, r.TotalAmount, 0m))
+        var allEvents = purchaseInvoices.Select(p => (p.CreatedAt, "PurchaseInvoice", p.InvoiceNumber, p.NetTotal, 0m))
             .Concat(payments.Select(p => (p.CreatedAt, "Payment", p.PaymentNumber, 0m, p.Amount)))
             .Concat(returns.Select(r => (r.CreatedAt, "Return", r.ReturnNumber, 0m, r.TotalAmount)))
             .OrderBy(e => e.CreatedAt);
@@ -63,13 +64,13 @@ public sealed class GetSupplierStatementQueryHandler(PurchasingDbContext db)
             lines.Add(new StatementLineDto(date, type, reference, debit, credit, running));
         }
 
-        var totalPurchases = receipts.Sum(r => r.TotalAmount);
+        var totalPurchases = purchaseInvoices.Sum(p => p.NetTotal);
         var totalPayments  = payments.Sum(p => p.Amount);
         var totalReturns   = returns.Sum(r => r.TotalAmount);
 
         return Result.Success(new SupplierStatementDto(
             supplier.Id, supplier.Name,
-            0, totalPurchases, totalPayments, totalReturns,
-            totalPurchases - totalPayments - totalReturns, lines));
+            supplier.OpeningBalance, totalPurchases, totalPayments, totalReturns,
+            supplier.OpeningBalance + totalPurchases - totalPayments - totalReturns, lines));
     }
 }

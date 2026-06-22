@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { useAuthStore } from "@/stores/authStore";
 
 interface RadiologyOrderDetail {
   id: string;
@@ -37,6 +38,7 @@ const STATUS_LABELS: Record<string, string> = {
 export default function RadiologyOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { user } = useAuthStore();
   const [order, setOrder] = useState<RadiologyOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [reportText, setReportText] = useState("");
@@ -63,7 +65,7 @@ export default function RadiologyOrderDetailPage() {
   const handleSaveReport = async () => {
     await api.post(`/radiology/orders/${id}/report`, {
       reportText,
-      reportedById: "00000000-0000-0000-0000-000000000001",
+      reportedById: user?.userId ?? "00000000-0000-0000-0000-000000000001",
     });
     setShowReportEditor(false);
     load();

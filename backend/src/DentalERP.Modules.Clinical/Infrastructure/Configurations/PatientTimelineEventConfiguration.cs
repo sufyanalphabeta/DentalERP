@@ -19,7 +19,7 @@ public sealed class PatientTimelineEventConfiguration : IEntityTypeConfiguration
         builder.Property(e => e.ActorName).HasColumnName("actor_name").HasMaxLength(100);
         builder.Property(e => e.LinkedEntityType).HasColumnName("linked_entity_type").HasMaxLength(50);
         builder.Property(e => e.LinkedEntityId).HasColumnName("linked_entity_id");
-        builder.Property(e => e.Metadata).HasColumnName("metadata");
+        builder.Property(e => e.Metadata).HasColumnName("metadata").HasColumnType("jsonb");
         builder.Property(e => e.EventAt).HasColumnName("event_at").IsRequired();
         builder.Property(e => e.IsVisibleToDoctor).HasColumnName("is_visible_to_doctor").IsRequired();
         builder.Property(e => e.IsVisibleToPatient).HasColumnName("is_visible_to_patient").IsRequired();

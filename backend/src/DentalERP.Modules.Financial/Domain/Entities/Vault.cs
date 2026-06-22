@@ -24,6 +24,12 @@ public sealed class Vault
             CreatedAt = DateTime.UtcNow
         };
 
+    public void Update(string name, string type)
+    {
+        Name = name;
+        Type = type;
+    }
+
     public void Deactivate() => IsActive = false;
     public void Activate() => IsActive = true;
 }

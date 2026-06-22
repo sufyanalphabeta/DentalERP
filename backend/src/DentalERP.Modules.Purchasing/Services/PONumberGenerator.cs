@@ -8,8 +8,10 @@ public sealed class PONumberGenerator(PurchasingDbContext db) : IPONumberGenerat
     public async Task<string> GenerateAsync(CancellationToken ct = default)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await db.PurchaseOrders.CountAsync(p => p.CreatedAt.Year == year, ct);
-        return $"PO-{year}-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('po_number_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"PO-{year}-{seq:D6}";
     }
 }
 
@@ -18,8 +20,10 @@ public sealed class GRNumberGenerator(PurchasingDbContext db) : IGRNumberGenerat
     public async Task<string> GenerateAsync(CancellationToken ct = default)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await db.GoodsReceipts.CountAsync(g => g.CreatedAt.Year == year, ct);
-        return $"GR-{year}-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('gr_number_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"GR-{year}-{seq:D6}";
     }
 }
 
@@ -28,8 +32,10 @@ public sealed class ReturnNumberGenerator(PurchasingDbContext db) : IReturnNumbe
     public async Task<string> GenerateAsync(CancellationToken ct = default)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await db.PurchaseReturns.CountAsync(r => r.CreatedAt.Year == year, ct);
-        return $"PRN-{year}-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('purchase_return_number_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"PRN-{year}-{seq:D6}";
     }
 }
 
@@ -38,7 +44,21 @@ public sealed class SupplierPaymentNumberGenerator(PurchasingDbContext db) : ISu
     public async Task<string> GenerateAsync(CancellationToken ct = default)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await db.SupplierPayments.CountAsync(p => p.CreatedAt.Year == year, ct);
-        return $"SPAY-{year}-{count + 1:D6}";
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('supplier_payment_number_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"SPAY-{year}-{seq:D6}";
+    }
+}
+
+public sealed class PINumberGenerator(PurchasingDbContext db) : IPINumberGenerator
+{
+    public async Task<string> GenerateAsync(CancellationToken ct = default)
+    {
+        var year = DateTime.UtcNow.Year;
+        var seq = await db.Database
+            .SqlQuery<long>($"SELECT nextval('purchase_invoice_number_seq') AS \"Value\"")
+            .FirstAsync(ct);
+        return $"PI-{year}-{seq:D6}";
     }
 }

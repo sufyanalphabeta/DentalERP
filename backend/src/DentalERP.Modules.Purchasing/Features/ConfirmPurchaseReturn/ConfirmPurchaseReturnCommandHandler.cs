@@ -66,7 +66,7 @@ public sealed class ConfirmPurchaseReturnCommandHandler(PurchasingDbContext db, 
                 db.StockMovements.Add(movement.Value);
         }
 
-        db.AuditLogs.Add(new AuditLogEntry
+        db.AuditLogEntries.Add(new AuditLogEntry
         {
             EntityType = "PurchaseReturn",
             EntityId   = ret.Id,

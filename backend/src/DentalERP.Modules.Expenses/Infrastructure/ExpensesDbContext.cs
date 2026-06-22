@@ -1,4 +1,4 @@
-using DentalERP.Modules.Expenses.Domain.Entities;
+﻿using DentalERP.Modules.Expenses.Domain.Entities;
 using DentalERP.Modules.Expenses.Domain.Internal;
 using DentalERP.SharedKernel.Abstractions;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +12,7 @@ internal sealed class ExpensesDbContext : DbContext
     internal DbSet<ExpenseCategory> ExpenseCategories => Set<ExpenseCategory>();
     internal DbSet<ExpenseTemplate> ExpenseTemplates => Set<ExpenseTemplate>();
     internal DbSet<Expense> Expenses => Set<Expense>();
-    internal DbSet<AuditLogEntry> AuditLogs => Set<AuditLogEntry>();
+    internal DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
     internal DbSet<VaultTransactionEntry> VaultTransactions => Set<VaultTransactionEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -77,7 +77,7 @@ internal sealed class ExpensesDbContext : DbContext
         // AuditLogEntry — shared write model
         modelBuilder.Entity<AuditLogEntry>(e =>
         {
-            e.ToTable("audit_logs").HasKey(x => x.Id);
+            e.ToTable("audit_log_entries").HasKey(x => x.Id);
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.EntityType).HasColumnName("entity_type").HasMaxLength(100);
             e.Property(x => x.EntityId).HasColumnName("entity_id");

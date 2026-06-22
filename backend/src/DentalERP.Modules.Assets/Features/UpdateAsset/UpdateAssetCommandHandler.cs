@@ -19,7 +19,7 @@ internal sealed class UpdateAssetCommandHandler : IRequestHandler<UpdateAssetCom
         asset.Update(request.Name, request.CategoryId, request.PurchaseDate,
             request.PurchaseCost, request.Location, request.Notes);
 
-        _db.AuditLogs.Add(new AuditLogEntry
+        _db.AuditLogEntries.Add(new AuditLogEntry
         {
             EntityType = "Asset", EntityId = asset.Id, Action = "Updated",
             Details = $"Asset {asset.AssetTag} updated", CreatedAt = DateTime.UtcNow

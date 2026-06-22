@@ -60,6 +60,7 @@ export default function InvoiceDetailPage() {
   const [cancelReason, setCancelReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
   const [clinicName, setClinicName] = useState("عيادة الأسنان");
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     api.get<{ key: string; value: string }[]>("/settings?group=clinic").then((r) => {
@@ -130,8 +131,19 @@ export default function InvoiceDetailPage() {
     }
   }
 
-  function handlePrint() {
-    window.print();
+  async function handlePrint() {
+    setPdfLoading(true);
+    try {
+      const res = await api.get(`/invoices/${id}/pdf?clinicName=${encodeURIComponent(clinicName)}`, { responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice-${invoice?.invoiceNumber ?? id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setPdfLoading(false);
+    }
   }
 
   if (loading) return <div className="p-6 text-center text-gray-500">جاري التحميل...</div>;
@@ -144,19 +156,9 @@ export default function InvoiceDetailPage() {
 
   return (
     <>
-      {/* Print styles */}
-      <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          #invoice-print, #invoice-print * { visibility: visible; }
-          #invoice-print { position: fixed; top: 0; left: 0; width: 100%; }
-          .no-print { display: none !important; }
-        }
-      `}</style>
-
       <div className="p-6 max-w-4xl mx-auto">
         {/* Header — screen only */}
-        <div className="flex items-center justify-between mb-6 no-print">
+        <div className="flex items-center justify-between mb-6 ">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700">
               ← رجوع
@@ -167,9 +169,10 @@ export default function InvoiceDetailPage() {
           <div className="flex gap-2">
             <button
               onClick={handlePrint}
-              className="border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1"
+              disabled={pdfLoading}
+              className="border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1 disabled:opacity-50"
             >
-              🖨️ طباعة
+              {pdfLoading ? "جاري التحميل..." : "📄 تحميل PDF"}
             </button>
             {canConfirm && (
               <button onClick={confirmInvoice} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
@@ -192,35 +195,19 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
 
-        {/* Printable invoice */}
-        <div id="invoice-print" dir="rtl">
-          {/* Print header */}
-          <div className="hidden print:block text-center mb-6 border-b pb-4">
-            <h1 className="text-2xl font-bold">{clinicName}</h1>
-            <p className="text-gray-500 text-sm mt-1">فاتورة ضريبية</p>
-          </div>
-
-          {/* Invoice number + status — print version */}
-          <div className="print:flex print:justify-between print:items-center print:mb-4 hidden">
-            <div>
-              <div className="font-bold text-lg">{invoice.invoiceNumber}</div>
-              <div className="text-sm text-gray-500">{new Date(invoice.createdAt).toLocaleDateString("ar-LY")}</div>
-            </div>
-            <div className="text-sm font-medium">{st.label}</div>
-          </div>
-
+        <div dir="rtl">
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow p-4 print:shadow-none print:border print:border-gray-200">
+            <div className="bg-white rounded-xl shadow p-4">
               <div className="text-sm text-gray-500 mb-1">المريض</div>
               <div className="font-semibold text-gray-800">{invoice.patientName}</div>
             </div>
-            <div className="bg-white rounded-xl shadow p-4 print:shadow-none print:border print:border-gray-200">
+            <div className="bg-white rounded-xl shadow p-4">
               <div className="text-sm text-gray-500 mb-1">الطبيب</div>
               <div className="font-semibold text-gray-800">{invoice.doctorName}</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow overflow-hidden mb-6 print:shadow-none print:border print:border-gray-200">
+          <div className="bg-white rounded-xl shadow overflow-hidden mb-6">
             <div className="px-5 py-4 border-b">
               <h2 className="font-semibold text-gray-700">بنود الفاتورة</h2>
             </div>
@@ -248,7 +235,7 @@ export default function InvoiceDetailPage() {
             </table>
           </div>
 
-          <div className="bg-white rounded-xl shadow p-5 print:shadow-none print:border print:border-gray-200">
+          <div className="bg-white rounded-xl shadow p-5">
             <div className="space-y-2 max-w-xs mr-auto">
               <div className="flex justify-between text-sm text-gray-600">
                 <span>المجموع الفرعي</span>
@@ -276,20 +263,15 @@ export default function InvoiceDetailPage() {
           </div>
 
           {invoice.notes && (
-            <div className="mt-4 text-sm text-gray-500 print:block">
+            <div className="mt-4 text-sm text-gray-500">
               <span className="font-medium">ملاحظات:</span> {invoice.notes}
             </div>
           )}
-
-          {/* Print footer */}
-          <div className="hidden print:block text-center mt-8 text-xs text-gray-400 border-t pt-4">
-            شكراً لثقتكم — {new Date().toLocaleDateString("ar-LY")}
-          </div>
         </div>
 
         {/* Payment modal */}
         {showPayModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 no-print">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 ">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
               <h2 className="text-lg font-bold mb-4">تسجيل دفعة</h2>
               {payError && <div className="mb-3 text-sm text-red-600 bg-red-50 p-3 rounded">{payError}</div>}
@@ -330,7 +312,7 @@ export default function InvoiceDetailPage() {
 
         {/* Cancel modal */}
         {showCancelModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 no-print">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 ">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
               <h2 className="text-lg font-bold mb-4 text-red-600">إلغاء الفاتورة</h2>
               <div className="mb-4">

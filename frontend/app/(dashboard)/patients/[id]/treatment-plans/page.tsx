@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 
 interface TreatmentPlanItem {
@@ -65,11 +66,8 @@ export default function TreatmentPlansPage() {
 
   const load = () => {
     if (!id || !token) return;
-    fetch(`/api/patients/${id}/treatment-plans`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then(setPlans)
+    api.get<TreatmentPlan[]>(`/patients/${id}/treatment-plans`)
+      .then((r) => setPlans(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   };
@@ -77,15 +75,11 @@ export default function TreatmentPlansPage() {
   useEffect(load, [id, token]);
 
   const handleCreate = async () => {
-    await fetch(`/api/patients/${id}/treatment-plans`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: newPlan.title,
-        estimatedCost: parseFloat(newPlan.estimatedCost),
-        priority: newPlan.priority,
-        description: newPlan.description || null,
-      }),
+    await api.post(`/patients/${id}/treatment-plans`, {
+      title: newPlan.title,
+      estimatedCost: parseFloat(newPlan.estimatedCost),
+      priority: newPlan.priority,
+      description: newPlan.description || null,
     });
     setShowNew(false);
     setNewPlan({ title: '', estimatedCost: '', priority: 'Normal', description: '' });
@@ -94,11 +88,7 @@ export default function TreatmentPlansPage() {
   };
 
   const handleStatusChange = async (planId: string, status: string) => {
-    await fetch(`/api/treatment-plans/${planId}/status`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
+    await api.patch(`/treatment-plans/${planId}/status`, { status });
     setLoading(true);
     load();
   };

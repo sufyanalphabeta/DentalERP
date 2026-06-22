@@ -28,6 +28,9 @@ public sealed class CreateLabOrderCommandHandler(LaboratoryDbContext db, ILabOrd
         foreach (var item in request.Items)
             order.AddItem(LabOrderItem.Create(order.Id, item.ItemName, item.UnitCost, item.Quantity, item.Description));
 
+        if (request.Revenue.HasValue)
+            order.SetRevenue(request.Revenue.Value);
+
         db.LabOrders.Add(order);
         await db.SaveChangesAsync(cancellationToken);
         return Result.Success(order.Id);

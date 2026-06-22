@@ -48,7 +48,7 @@ public sealed class SupplierTests
     public void Update_ChangesName()
     {
         var supplier = Supplier.Create("SUP-000005", "Old Name");
-        supplier.Update("New Name", null, "Lab", null, null, null, null, 30, 0, null);
+        supplier.Update("New Name", null, "Lab", null, null, null, null, 30, 0, null, 0);
         supplier.Name.Should().Be("New Name");
         supplier.Category.Should().Be("Lab");
     }
@@ -57,7 +57,7 @@ public sealed class SupplierTests
     public void Update_InvalidCategory_Throws()
     {
         var supplier = Supplier.Create("SUP-000006", "Supplier");
-        var act = () => supplier.Update("Supplier", null, "BadCat", null, null, null, null, 30, 0, null);
+        var act = () => supplier.Update("Supplier", null, "BadCat", null, null, null, null, 30, 0, null, 0);
         act.Should().Throw<ArgumentException>();
     }
 

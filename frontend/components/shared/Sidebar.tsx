@@ -2,72 +2,432 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import {
+  LayoutDashboard,
+  MonitorSmartphone,
+  HeartPulse,
+  FlaskConical,
+  ScanLine,
+  CreditCard,
+  Landmark,
+  FileText,
+  Package,
+  ShoppingCart,
+  Building2,
+  BarChart3,
+  Settings,
+  LogOut,
+  ChevronDown,
+  ChevronUp,
+  type LucideIcon,
+} from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
+import { useLangStore } from "@/stores/langStore";
 
-const navItems = [
-  { href: "/", label: "الرئيسية", permission: null },
-  { href: "/patients", label: "المرضى", permission: "Patients.View" },
-  { href: "/scheduling/calendar", label: "المواعيد", permission: "Appointments.View" },
-  { href: "/finance/invoices", label: "الفواتير", permission: "Treasury.View" },
-  { href: "/finance/treasury", label: "الخزينة", permission: "Treasury.View" },
-  { href: "/finance/installments", label: "التقسيط", permission: "Treasury.View" },
-  { href: "/inventory", label: "المخزون", permission: "Inventory.View" },
-  { href: "/lab/orders", label: "طلبات المختبر", permission: "Lab.View" },
-  { href: "/radiology/orders", label: "طلبات الأشعة", permission: "Radiology.View" },
-  { href: "/finance/insurance/claims", label: "مطالبات التأمين", permission: "Treasury.View" },
-  { href: "/finance/insurance/receivables", label: "مستحقات التأمين", permission: "Treasury.View" },
-  { href: "/reports", label: "التقارير", permission: "Reports.View" },
-  { href: "/admin/users", label: "المستخدمون", permission: "Users.View" },
-  { href: "/settings/services", label: "الخدمات", permission: "Settings.View" },
-  { href: "/settings/vaults", label: "الخزائن", permission: "Settings.View" },
-  { href: "/settings/insurance", label: "شركات التأمين", permission: "Settings.View" },
-  { href: "/admin/clinic-settings", label: "الإعدادات", permission: "Settings.View" },
+interface NavItem {
+  href: string;
+  label: string;
+  labelEn: string;
+  permission?: string;
+}
+
+interface NavGroup {
+  label: string;
+  labelEn: string;
+  icon: LucideIcon;
+  permission?: string;
+  section?: string;
+  items: NavItem[];
+}
+
+/* Section labels for visual dividers */
+const SECTIONS: Record<string, { ar: string; en: string }> = {
+  operations: { ar: "العمليات", en: "OPERATIONS" },
+  financial:  { ar: "المالية",  en: "FINANCIAL"  },
+  logistics:  { ar: "اللوجستيات", en: "LOGISTICS" },
+  admin:      { ar: "الإدارة",  en: "ADMIN"      },
+};
+
+const NAV: NavGroup[] = [
+  /* ── Operations ─────────────────────────────────────────────── */
+  {
+    label: "الاستقبال", labelEn: "Reception",
+    icon: MonitorSmartphone,
+    section: "operations",
+    items: [
+      { href: "/reception",    label: "مساحة الاستقبال", labelEn: "Reception Desk" },
+      { href: "/patients",     label: "المرضى",           labelEn: "Patients",    permission: "Patients.View" },
+      { href: "/appointments", label: "المواعيد",          labelEn: "Appointments",permission: "Appointments.View" },
+      { href: "/queue",        label: "طابور الانتظار",    labelEn: "Waiting Queue",permission: "Appointments.View" },
+    ],
+  },
+  {
+    label: "السريرية", labelEn: "Clinical",
+    icon: HeartPulse,
+    section: "operations",
+    items: [
+      { href: "/clinical/workspace", label: "مساحة الطبيب", labelEn: "Doctor's Workspace" },
+    ],
+  },
+  {
+    label: "المختبر", labelEn: "Laboratory",
+    icon: FlaskConical,
+    section: "operations",
+    permission: "Lab.View",
+    items: [
+      { href: "/lab/orders",        label: "طلبات المختبر",    labelEn: "Lab Orders",       permission: "Lab.View" },
+      { href: "/lab/external-labs", label: "المختبرات الخارجية",labelEn: "External Labs",   permission: "Lab.View" },
+    ],
+  },
+  {
+    label: "الأشعة", labelEn: "Radiology",
+    icon: ScanLine,
+    section: "operations",
+    permission: "Radiology.View",
+    items: [
+      { href: "/radiology/orders", label: "طلبات الأشعة", labelEn: "Radiology Orders", permission: "Radiology.View" },
+    ],
+  },
+
+  /* ── Financial ───────────────────────────────────────────────── */
+  {
+    label: "الصندوق", labelEn: "Cashier",
+    icon: CreditCard,
+    section: "financial",
+    permission: "Treasury.View",
+    items: [
+      { href: "/finance/cashier",      label: "مساحة الصراف", labelEn: "Cashier Desk",   permission: "Treasury.View" },
+      { href: "/finance/invoices",     label: "الفواتير",     labelEn: "Invoices",       permission: "Treasury.View" },
+      { href: "/finance/installments", label: "الأقساط",      labelEn: "Installments",   permission: "Treasury.View" },
+    ],
+  },
+  {
+    label: "الخزينة", labelEn: "Treasury",
+    icon: Landmark,
+    section: "financial",
+    permission: "Treasury.View",
+    items: [
+      { href: "/finance/treasury",    label: "أرصدة الخزائن",        labelEn: "Vault Balances",     permission: "Treasury.View" },
+      { href: "/treasury/movements",  label: "حركة النقدية",         labelEn: "Cash Movements",     permission: "Treasury.View" },
+      { href: "/treasury/transfers",  label: "التحويلات بين الخزائن",labelEn: "Vault Transfers",    permission: "Treasury.View" },
+      { href: "/expenses",            label: "المصروفات",            labelEn: "Expenses",           permission: "Treasury.View" },
+      { href: "/expenses/categories", label: "فئات المصروفات",       labelEn: "Expense Categories", permission: "Treasury.View" },
+    ],
+  },
+  {
+    label: "الذمم", labelEn: "Receivables",
+    icon: FileText,
+    section: "financial",
+    permission: "Treasury.View",
+    items: [
+      { href: "/finance/doctors",              label: "حسابات الأطباء",   labelEn: "Doctor Accounts",       permission: "Treasury.View" },
+      { href: "/finance/supplier-payments",    label: "مدفوعات الموردين", labelEn: "Supplier Payments",     permission: "Treasury.View" },
+      { href: "/finance/insurance/claims",     label: "مطالبات التأمين",  labelEn: "Insurance Claims",      permission: "Treasury.View" },
+      { href: "/finance/insurance/receivables",label: "مستحقات التأمين",  labelEn: "Insurance Receivables", permission: "Treasury.View" },
+    ],
+  },
+
+  /* ── Logistics ───────────────────────────────────────────────── */
+  {
+    label: "المخزون", labelEn: "Inventory",
+    icon: Package,
+    section: "logistics",
+    permission: "Inventory.View",
+    items: [
+      { href: "/inventory/alerts",     label: "تنبيهات المخزون", labelEn: "Stock Alerts",    permission: "Inventory.View" },
+      { href: "/inventory/items",      label: "الأصناف",         labelEn: "Items",           permission: "Inventory.View" },
+      { href: "/inventory/movements",  label: "حركة المخزون",    labelEn: "Stock Movements", permission: "Inventory.View" },
+      { href: "/inventory/warehouses", label: "المستودعات",      labelEn: "Warehouses",      permission: "Inventory.View" },
+      { href: "/inventory/categories", label: "الفئات",          labelEn: "Categories",      permission: "Inventory.View" },
+    ],
+  },
+  {
+    label: "المشتريات", labelEn: "Purchasing",
+    icon: ShoppingCart,
+    section: "logistics",
+    permission: "Purchasing.View",
+    items: [
+      { href: "/purchasing/suppliers", label: "الموردون",          labelEn: "Suppliers" },
+      { href: "/purchasing/invoices",  label: "فواتير المشتريات",  labelEn: "Purchase Invoices" },
+      { href: "/purchasing/returns",   label: "مردودات المشتريات", labelEn: "Purchase Returns" },
+    ],
+  },
+  {
+    label: "الأصول الثابتة", labelEn: "Fixed Assets",
+    icon: Building2,
+    section: "logistics",
+    permission: "Assets.View",
+    items: [
+      { href: "/assets",            label: "سجل الأصول", labelEn: "Assets Registry" },
+      { href: "/assets/categories", label: "الفئات",     labelEn: "Categories" },
+    ],
+  },
+
+  /* ── Admin ───────────────────────────────────────────────────── */
+  {
+    label: "التقارير", labelEn: "Reports",
+    icon: BarChart3,
+    section: "admin",
+    items: [
+      { href: "/reports",            label: "مركز التقارير",   labelEn: "Reports Center" },
+      { href: "/reports/operational",label: "التقرير التشغيلي", labelEn: "Operational" },
+      { href: "/reports/expenses",   label: "تقرير المصروفات",  labelEn: "Expenses Report" },
+      { href: "/reports/purchasing", label: "تقرير المشتريات",  labelEn: "Purchasing Report" },
+    ],
+  },
+  {
+    label: "الإعدادات", labelEn: "Settings",
+    icon: Settings,
+    section: "admin",
+    permission: "Settings.View",
+    items: [
+      { href: "/settings/users",              label: "المستخدمون",        labelEn: "Users",               permission: "Users.View" },
+      { href: "/settings/roles",              label: "الأدوار والصلاحيات", labelEn: "Roles & Permissions", permission: "Roles.View" },
+      { href: "/settings/doctors",            label: "الأطباء",            labelEn: "Doctors",             permission: "Settings.View" },
+      { href: "/settings/services",           label: "الخدمات",            labelEn: "Services",            permission: "Settings.View" },
+      { href: "/settings/services/categories",label: "فئات الخدمات",       labelEn: "Service Categories",  permission: "Settings.View" },
+      { href: "/settings/insurance",          label: "شركات التأمين",      labelEn: "Insurance Companies", permission: "Settings.View" },
+      { href: "/settings/vaults",             label: "الخزائن",            labelEn: "Vaults",              permission: "Settings.View" },
+      { href: "/settings/system",             label: "إعدادات النظام",     labelEn: "System Settings",     permission: "Settings.View" },
+    ],
+  },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, hasPermission, clearAuth } = useAuthStore();
+  const { lang, setLang } = useLangStore();
+  const isAr = lang === "ar";
 
-  const filtered = navItems.filter(
-    (item) => !item.permission || hasPermission(item.permission)
-  );
+  const lbl = (ar: string, en: string) => (isAr ? ar : en);
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const defaults: Record<string, boolean> = {};
+    NAV.forEach((g) => {
+      if (g.items.some((i) => pathname === i.href || pathname.startsWith(i.href + "/"))) {
+        defaults[g.label] = true;
+      }
+    });
+    return defaults;
+  });
+
+  const canSeeItem = (item: NavItem) =>
+    !item.permission || hasPermission(item.permission) || hasPermission("*");
+
+  const canSeeGroup = (group: NavGroup) =>
+    (!group.permission || hasPermission(group.permission) || hasPermission("*")) &&
+    group.items.some(canSeeItem);
+
+  const toggle = (label: string) =>
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
+
+  /* Build ordered list with section dividers */
+  const visibleGroups = NAV.filter(canSeeGroup);
+  const renderedSections = new Set<string>();
 
   return (
-    <aside className="w-64 min-h-screen bg-gray-900 text-white flex flex-col" dir="rtl">
-      <div className="p-4 border-b border-gray-700">
-        <h2 className="font-bold text-lg">🦷 DentalERP</h2>
-        <p className="text-xs text-gray-400 mt-1">{user?.fullName}</p>
+    <aside
+      className="w-60 min-h-screen flex flex-col flex-shrink-0"
+      style={{ background: "var(--c-sidebar-bg)" }}
+      dir="rtl"
+    >
+      {/* ── Logo ─────────────────────────────────────────────────── */}
+      <div
+        className="px-4 py-3.5 border-b flex items-center gap-3"
+        style={{ borderColor: "var(--c-sidebar-hover)" }}
+      >
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: "var(--c-sidebar-active)" }}
+        >
+          <HeartPulse size={16} className="text-white" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[13px] font-bold text-white leading-tight">DentalERP</div>
+          <div
+            className="text-[11px] leading-tight truncate"
+            style={{ color: "var(--c-sidebar-text-dim)" }}
+          >
+            {user?.fullName}
+          </div>
+        </div>
       </div>
 
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {filtered.map((item) => {
-          const active =
-            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+      {/* ── Dashboard ────────────────────────────────────────────── */}
+      <div className="px-2.5 pt-2.5">
+        <Link
+          href="/"
+          onClick={onClose}
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors"
+          style={{
+            color: pathname === "/" ? "white" : "var(--c-sidebar-text)",
+            background: pathname === "/" ? "var(--c-sidebar-active)" : "transparent",
+          }}
+          onMouseEnter={(e) => {
+            if (pathname !== "/")
+              (e.currentTarget as HTMLElement).style.background = "var(--c-sidebar-hover)";
+          }}
+          onMouseLeave={(e) => {
+            if (pathname !== "/")
+              (e.currentTarget as HTMLElement).style.background = "transparent";
+          }}
+        >
+          <LayoutDashboard size={15} className="shrink-0" />
+          <span>{lbl("لوحة القيادة", "Dashboard")}</span>
+        </Link>
+      </div>
+
+      {/* ── Nav Groups ───────────────────────────────────────────── */}
+      <nav className="flex-1 px-2.5 pb-2 overflow-y-auto mt-1 space-y-0.5">
+        {visibleGroups.map((group) => {
+          const visibleItems = group.items.filter(canSeeItem);
+          const isOpen = openGroups[group.label] ?? false;
+          const hasActive = visibleItems.some((i) => isActive(i.href));
+          const Icon = group.icon;
+
+          /* Section divider */
+          let divider: React.ReactNode = null;
+          const sec = group.section;
+          if (sec && !renderedSections.has(sec)) {
+            renderedSections.add(sec);
+            divider = (
+              <div
+                key={`sec-${sec}`}
+                className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest"
+                style={{ color: "var(--c-sidebar-text-dim)" }}
+              >
+                {lbl(SECTIONS[sec].ar, SECTIONS[sec].en)}
+              </div>
+            );
+          }
+
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                active
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-300 hover:bg-gray-700"
-              }`}
-            >
-              {item.label}
-            </Link>
+            <div key={group.label}>
+              {divider}
+              {/* Group header */}
+              <button
+                onClick={() => toggle(group.label)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-[12px] font-semibold"
+                style={{
+                  color: hasActive ? "white" : "var(--c-sidebar-text)",
+                  background: hasActive ? "var(--c-sidebar-hover)" : "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  if (!hasActive)
+                    (e.currentTarget as HTMLElement).style.background = "var(--c-sidebar-hover)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!hasActive)
+                    (e.currentTarget as HTMLElement).style.background = "transparent";
+                }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon size={15} className="shrink-0" />
+                  <span>{lbl(group.label, group.labelEn)}</span>
+                </div>
+                {isOpen ? (
+                  <ChevronUp size={12} style={{ color: "var(--c-sidebar-text-dim)" }} />
+                ) : (
+                  <ChevronDown size={12} style={{ color: "var(--c-sidebar-text-dim)" }} />
+                )}
+              </button>
+
+              {/* Items */}
+              {isOpen && (
+                <div
+                  className="mt-0.5 ms-4 space-y-0.5 border-s ps-2"
+                  style={{ borderColor: "var(--c-sidebar-hover)" }}
+                >
+                  {visibleItems.map((item) => {
+                    const active = isActive(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onClose}
+                        className="block px-3 py-1.5 rounded-md text-[12px] transition-colors"
+                        style={{
+                          color: active ? "white" : "var(--c-sidebar-text)",
+                          background: active ? "var(--c-sidebar-active)" : "transparent",
+                          fontWeight: active ? 500 : 400,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!active)
+                            (e.currentTarget as HTMLElement).style.background = "var(--c-sidebar-hover)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!active)
+                            (e.currentTarget as HTMLElement).style.background = "transparent";
+                        }}
+                      >
+                        {lbl(item.label, item.labelEn)}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>
 
-      <div className="p-3 border-t border-gray-700">
-        <button
-          onClick={() => {
-            clearAuth();
-            window.location.href = "/login";
-          }}
-          className="w-full text-sm text-gray-400 hover:text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors text-right"
+      {/* ── Footer ───────────────────────────────────────────────── */}
+      <div
+        className="px-2.5 py-2.5 border-t space-y-0.5"
+        style={{ borderColor: "var(--c-sidebar-hover)" }}
+      >
+        {/* Language toggle */}
+        <div
+          className="flex items-center gap-1 px-3 py-1.5 text-[11px]"
+          style={{ color: "var(--c-sidebar-text-dim)" }}
         >
-          تسجيل الخروج
+          <span className="flex-1">{lbl("اللغة", "Lang")}</span>
+          <button
+            onClick={() => setLang("ar")}
+            className="px-2 py-0.5 rounded transition-colors"
+            style={{
+              background: lang === "ar" ? "var(--c-sidebar-active)" : "transparent",
+              color: lang === "ar" ? "white" : "var(--c-sidebar-text-dim)",
+            }}
+          >
+            عربي
+          </button>
+          <button
+            onClick={() => setLang("en")}
+            className="px-2 py-0.5 rounded transition-colors"
+            style={{
+              background: lang === "en" ? "var(--c-sidebar-active)" : "transparent",
+              color: lang === "en" ? "white" : "var(--c-sidebar-text-dim)",
+            }}
+          >
+            EN
+          </button>
+        </div>
+
+        {/* Sign out */}
+        <button
+          onClick={() => { clearAuth(); window.location.href = "/login"; }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] transition-colors text-start"
+          style={{ color: "var(--c-sidebar-text-dim)" }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "var(--c-sidebar-hover)";
+            (e.currentTarget as HTMLElement).style.color = "white";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "transparent";
+            (e.currentTarget as HTMLElement).style.color = "var(--c-sidebar-text-dim)";
+          }}
+        >
+          <LogOut size={14} className="shrink-0" />
+          <span>{lbl("تسجيل الخروج", "Sign Out")}</span>
         </button>
       </div>
     </aside>

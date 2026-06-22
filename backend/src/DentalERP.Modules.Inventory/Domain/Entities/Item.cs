@@ -12,6 +12,7 @@ public sealed class Item : BaseEntity
     public Guid? CategoryId { get; private set; }
     public Guid? UnitOfMeasureId { get; private set; }
     public decimal UnitCost { get; private set; }
+    public decimal SalePrice { get; private set; }
     public decimal ReorderLevel { get; private set; }
     public decimal ReorderQuantity { get; private set; }
     public bool IsExpiryTracked { get; private set; }
@@ -85,6 +86,13 @@ public sealed class Item : BaseEntity
     {
         if (newCost < 0) throw new ArgumentException("Unit cost cannot be negative.");
         UnitCost = newCost;
+        Touch();
+    }
+
+    public void UpdateSalePrice(decimal price)
+    {
+        if (price < 0) throw new ArgumentException("Sale price cannot be negative.");
+        SalePrice = price;
         Touch();
     }
 

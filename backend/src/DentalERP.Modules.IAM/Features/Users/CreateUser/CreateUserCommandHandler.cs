@@ -14,8 +14,9 @@ public sealed class CreateUserCommandHandler(IAMDbContext db)
         if (await db.Users.AnyAsync(u => u.Username == request.Username.ToLowerInvariant(), ct))
             return Result.Failure<Guid>(Error.Conflict("Username"));
 
-        var hash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        var hash = BCrypt.Net.BCrypt.HashPassword("123456");
         var user = User.Create(request.Username, hash, request.FullName, request.Email, request.Phone);
+        user.SetMustChangePassword(true);
 
         foreach (var roleId in request.RoleIds)
             user.AddRole(roleId);

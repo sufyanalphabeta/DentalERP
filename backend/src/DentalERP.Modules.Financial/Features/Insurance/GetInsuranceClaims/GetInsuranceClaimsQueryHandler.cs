@@ -19,14 +19,22 @@ public sealed class GetInsuranceClaimsQueryHandler(FinancialDbContext db)
         if (!string.IsNullOrEmpty(request.Status)) query = query.Where(c => c.Status == request.Status);
 
         var total = await query.CountAsync(cancellationToken);
-        var items = await query
+        var rows = await query
             .OrderByDescending(c => c.ClaimDate)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(c => new InsuranceClaimSummaryDto(
-                c.Id, c.ClaimNumber, c.Status, c.InsuranceCompany.Name,
-                c.PatientId, c.ClaimedAmount, c.PaidAmount, c.CoveragePercent, c.ClaimDate))
+            .Select(c => new { c.Id, c.ClaimNumber, c.Status, c.InsuranceCompany.Name, c.PatientId, c.ClaimedAmount, c.PaidAmount, c.CoveragePercent, c.ClaimDate })
             .ToListAsync(cancellationToken);
+
+        var patientIds = rows.Select(r => r.PatientId).Distinct().ToList();
+        var patientNames = await db.PatientNames
+            .Where(p => patientIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, p => p.FullName, cancellationToken);
+
+        var items = rows.Select(c => new InsuranceClaimSummaryDto(
+            c.Id, c.ClaimNumber, c.Status, c.Name,
+            c.PatientId, patientNames.GetValueOrDefault(c.PatientId, "—"),
+            c.ClaimedAmount, c.PaidAmount, c.CoveragePercent, c.ClaimDate)).ToList();
 
         return Result.Success(new PagedInsuranceClaimsDto(items, total, request.Page, request.PageSize));
     }

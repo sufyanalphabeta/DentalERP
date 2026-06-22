@@ -25,6 +25,7 @@ public static class FinancialModule
         services.AddScoped<ICommissionEngine, CommissionEngine>();
         services.AddScoped<IInvoiceNumberGenerator, InvoiceNumberGenerator>();
         services.AddScoped<IInsuranceClaimNumberGenerator, InsuranceClaimNumberGenerator>();
+        services.AddScoped<IVaultTransferNumberGenerator, VaultTransferNumberGenerator>();
 
         return services;
     }
@@ -38,6 +39,7 @@ public static class FinancialModule
         app.MapInstallmentEndpoints();
         app.MapCommissionEndpoints();
         app.MapInsuranceEndpoints();
+        app.MapAnalyticsEndpoints();
         return app;
     }
 }

@@ -10,7 +10,7 @@ public sealed class LabOrder
     public Guid Id { get; private set; }
     public string OrderNumber { get; private set; } = string.Empty;
     public Guid PatientId { get; private set; }
-    public Guid DoctorId { get; private set; }
+    public Guid? DoctorId { get; private set; }
     public Guid? LabId { get; private set; }
     public Guid? ClientId { get; private set; }
     public Guid? ProcedureId { get; private set; }
@@ -40,7 +40,7 @@ public sealed class LabOrder
     public static LabOrder Create(
         string orderNumber,
         Guid patientId,
-        Guid doctorId,
+        Guid? doctorId,
         Guid? labId = null,
         Guid? clientId = null,
         Guid? procedureId = null,
