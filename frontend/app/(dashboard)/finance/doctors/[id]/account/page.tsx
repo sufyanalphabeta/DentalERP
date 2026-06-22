@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 
 interface CommissionRecord {
@@ -41,6 +41,7 @@ const methodAr: Record<string, string> = {
 
 export default function DoctorAccountPage() {
   const { id } = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const [account, setAccount] = useState<DoctorAccount | null>(null);
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,14 +50,20 @@ export default function DoctorAccountPage() {
   const [paying, setPaying] = useState(false);
   const [tab, setTab] = useState<"unpaid" | "paid">("unpaid");
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { load(); }, [id, searchParams]);
 
   async function load() {
     setLoading(true);
+    const dateFrom = searchParams.get("dateFrom");
+    const dateTo = searchParams.get("dateTo");
+    const params = new URLSearchParams();
+    if (dateFrom) params.set("from", dateFrom);
+    if (dateTo) params.set("to", dateTo);
+    const qs = params.toString();
     try {
       const [accRes, vaultRes] = await Promise.all([
-        api.get<DoctorAccount>(`/api/treasury/doctors/${id}/account`),
-        api.get<Vault[]>("/api/treasury/vaults/balances"),
+        api.get<DoctorAccount>(`/treasury/doctors/${id}/account${qs ? `?${qs}` : ""}`),
+        api.get<Vault[]>("/treasury/vaults/balances"),
       ]);
       setAccount(accRes.data);
       setVaults(vaultRes.data);
@@ -68,7 +75,7 @@ export default function DoctorAccountPage() {
   async function payCommission(commissionId: string) {
     setPaying(true);
     try {
-      await api.post(`/api/treasury/commissions/${commissionId}/pay`, { vaultId: selectedVault });
+      await api.post(`/treasury/commissions/${commissionId}/pay`, { vaultId: selectedVault });
       setPayModal(null);
       load();
     } finally {
@@ -79,7 +86,8 @@ export default function DoctorAccountPage() {
   if (loading) return <div className="p-6 text-center text-gray-500">جاري التحميل...</div>;
   if (!account) return <div className="p-6 text-center text-red-500">الحساب غير موجود</div>;
 
-  const filtered = account.commissions.filter((c) => tab === "unpaid" ? !c.isPaid : c.isPaid);
+  const commissions = account.commissions ?? [];
+  const filtered = commissions.filter((c) => tab === "unpaid" ? !c.isPaid : c.isPaid);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -101,10 +109,10 @@ export default function DoctorAccountPage() {
 
       <div className="flex gap-2 mb-4">
         <button onClick={() => setTab("unpaid")} className={`px-4 py-2 rounded-lg text-sm font-medium border ${tab === "unpaid" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-300"}`}>
-          غير مدفوعة ({account.commissions.filter((c) => !c.isPaid).length})
+          غير مدفوعة ({commissions.filter((c) => !c.isPaid).length})
         </button>
         <button onClick={() => setTab("paid")} className={`px-4 py-2 rounded-lg text-sm font-medium border ${tab === "paid" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-300"}`}>
-          مدفوعة ({account.commissions.filter((c) => c.isPaid).length})
+          مدفوعة ({commissions.filter((c) => c.isPaid).length})
         </button>
       </div>
 

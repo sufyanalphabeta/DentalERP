@@ -8,5 +8,6 @@ public sealed record RecordInsurancePaymentCommand(
     decimal Amount,
     string? ReferenceNumber,
     string? Notes,
-    Guid ReceivedById
+    Guid ReceivedById,
+    Guid? VaultId = null
 ) : IRequest<Result>;

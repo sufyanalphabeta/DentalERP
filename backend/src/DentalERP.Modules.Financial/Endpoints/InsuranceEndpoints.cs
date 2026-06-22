@@ -1,11 +1,11 @@
 using DentalERP.Modules.Financial.Features.Insurance.CreateInsuranceClaim;
 using DentalERP.Modules.Financial.Features.Insurance.CreateInsuranceCompany;
+using DentalERP.Modules.Financial.Features.Insurance.GetInsuranceClaimById;
 using DentalERP.Modules.Financial.Features.Insurance.GetInsuranceClaims;
 using DentalERP.Modules.Financial.Features.Insurance.GetInsuranceCompanies;
 using DentalERP.Modules.Financial.Features.Insurance.RecordInsurancePayment;
 using DentalERP.Modules.Financial.Features.Insurance.RejectInsuranceClaim;
 using DentalERP.Modules.Financial.Features.Insurance.SubmitInsuranceClaim;
-using DentalERP.Modules.Financial.Features.Vaults.CreateVaultTransfer;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -38,6 +38,12 @@ public static class InsuranceEndpoints
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
         });
 
+        ins.MapGet("/claims/{id:guid}", async (IMediator mediator, Guid id) =>
+        {
+            var result = await mediator.Send(new GetInsuranceClaimByIdQuery(id));
+            return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound(result.Error);
+        });
+
         ins.MapPost("/claims", async (IMediator mediator, CreateInsuranceClaimCommand cmd) =>
         {
             var result = await mediator.Send(cmd);
@@ -52,7 +58,7 @@ public static class InsuranceEndpoints
 
         ins.MapPost("/claims/{id:guid}/payment", async (IMediator mediator, Guid id, InsurancePaymentRequest req) =>
         {
-            var result = await mediator.Send(new RecordInsurancePaymentCommand(id, req.Amount, req.ReferenceNumber, req.Notes, req.ReceivedById));
+            var result = await mediator.Send(new RecordInsurancePaymentCommand(id, req.Amount, req.ReferenceNumber, req.Notes, req.ReceivedById, req.VaultId));
             return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
         });
 
@@ -62,17 +68,9 @@ public static class InsuranceEndpoints
             return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
         });
 
-        var vaults = app.MapGroup("/api/vaults").RequireAuthorization();
-
-        vaults.MapPost("/transfer", async (IMediator mediator, CreateVaultTransferCommand cmd) =>
-        {
-            var result = await mediator.Send(cmd);
-            return result.IsSuccess ? Results.Created($"/api/vaults/transfers/{result.Value}", new { id = result.Value }) : Results.BadRequest(result.Error);
-        });
-
         return app;
     }
 
-    private sealed record InsurancePaymentRequest(decimal Amount, string? ReferenceNumber, string? Notes, Guid ReceivedById);
+    private sealed record InsurancePaymentRequest(decimal Amount, string? ReferenceNumber, string? Notes, Guid ReceivedById, Guid? VaultId = null);
     private sealed record RejectRequest(string Reason);
 }

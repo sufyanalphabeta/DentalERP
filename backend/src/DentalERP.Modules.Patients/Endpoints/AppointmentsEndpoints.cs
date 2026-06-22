@@ -1,10 +1,12 @@
 using DentalERP.Modules.Patients.Features.Appointments.CreateAppointment;
 using DentalERP.Modules.Patients.Features.Appointments.GetAppointments;
 using DentalERP.Modules.Patients.Features.Appointments.UpdateAppointmentStatus;
+using DentalERP.Modules.Patients.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace DentalERP.Modules.Patients.Endpoints;
 
@@ -12,6 +14,16 @@ public static class AppointmentsEndpoints
 {
     public static void MapAppointmentsEndpoints(this IEndpointRouteBuilder app)
     {
+        app.MapGet("/api/appointment-types", async (PatientsDbContext db, CancellationToken ct) =>
+        {
+            var types = await db.AppointmentTypes
+                .Where(t => t.IsActive)
+                .OrderBy(t => t.Name)
+                .Select(t => new { t.Id, t.Name, t.NameAr, t.DefaultDurationMinutes, t.Color })
+                .ToListAsync(ct);
+            return Results.Ok(types);
+        }).RequireAuthorization();
+
         var group = app.MapGroup("/api/appointments").RequireAuthorization();
 
         group.MapGet("/", async (

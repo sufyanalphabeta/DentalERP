@@ -3,6 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { useAuthStore } from "@/stores/authStore";
+
+interface Vault {
+  id: string;
+  name: string;
+}
 
 interface InsuranceClaimDetail {
   id: string;
@@ -11,6 +17,7 @@ interface InsuranceClaimDetail {
   insuranceCompanyId: string;
   insuranceCompanyName: string;
   patientId: string;
+  patientName: string;
   invoiceId: string;
   claimedAmount: number;
   paidAmount: number;
@@ -30,21 +37,37 @@ const STATUS_LABELS: Record<string, string> = {
   Rejected: "مرفوض",
 };
 
+const STATUS_COLORS: Record<string, string> = {
+  Draft: "bg-gray-100 text-gray-700",
+  Submitted: "bg-blue-100 text-blue-700",
+  PartiallyPaid: "bg-yellow-100 text-yellow-700",
+  FullyPaid: "bg-green-100 text-green-700",
+  Rejected: "bg-red-100 text-red-700",
+};
+
 export default function InsuranceClaimDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { user } = useAuthStore();
   const [claim, setClaim] = useState<InsuranceClaimDetail | null>(null);
+  const [vaults, setVaults] = useState<Vault[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
   const [showReject, setShowReject] = useState(false);
-  const [payment, setPayment] = useState({ amount: 0, referenceNumber: "", notes: "" });
+  const [payment, setPayment] = useState({ amount: 0, referenceNumber: "", notes: "", vaultId: "" });
   const [rejectReason, setRejectReason] = useState("");
 
   const load = () => {
     setLoading(true);
-    api.get(`/insurance/claims?page=1&pageSize=100`).then((r) => {
-      const found = (r.data.items ?? []).find((c: InsuranceClaimDetail) => c.id === id);
-      setClaim(found ?? null);
+    Promise.all([
+      api.get(`/insurance/claims/${id}`),
+      api.get<Vault[]>("/treasury/vaults/balances"),
+    ]).then(([claimRes, vaultRes]) => {
+      setClaim(claimRes.data);
+      setVaults(vaultRes.data ?? []);
+      setLoading(false);
+    }).catch(() => {
+      setClaim(null);
       setLoading(false);
     });
   };
@@ -58,8 +81,11 @@ export default function InsuranceClaimDetailPage() {
 
   const handlePayment = async () => {
     await api.post(`/insurance/claims/${id}/payment`, {
-      ...payment,
-      receivedById: "00000000-0000-0000-0000-000000000001",
+      amount: payment.amount,
+      referenceNumber: payment.referenceNumber || null,
+      notes: payment.notes || null,
+      vaultId: payment.vaultId || null,
+      receivedById: user?.userId ?? "00000000-0000-0000-0000-000000000001",
     });
     setShowPayment(false);
     load();
@@ -86,9 +112,10 @@ export default function InsuranceClaimDetailPage() {
         <div className="flex items-start justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-gray-900">{claim.claimNumber}</h1>
-            <p className="text-sm text-gray-500 mt-1">{claim.insuranceCompanyName}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{claim.insuranceCompanyName}</p>
+            <p className="text-sm text-gray-600 mt-1 font-medium">{claim.patientName}</p>
           </div>
-          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[claim.status] ?? "bg-gray-100 text-gray-700"}`}>
             {STATUS_LABELS[claim.status] ?? claim.status}
           </span>
         </div>
@@ -112,6 +139,10 @@ export default function InsuranceClaimDetailPage() {
           </div>
         </div>
 
+        {claim.notes && (
+          <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3 mb-4">{claim.notes}</p>
+        )}
+
         {claim.rejectionReason && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
             <p className="text-sm text-red-700">سبب الرفض: {claim.rejectionReason}</p>
@@ -126,7 +157,7 @@ export default function InsuranceClaimDetailPage() {
           )}
           {(claim.status === "Submitted" || claim.status === "PartiallyPaid") && (
             <>
-              <button onClick={() => setShowPayment(true)} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
+              <button onClick={() => { setPayment({ amount: 0, referenceNumber: "", notes: "", vaultId: vaults[0]?.id ?? "" }); setShowPayment(true); }} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
                 تسجيل دفعة
               </button>
               <button onClick={() => setShowReject(true)} className="border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm hover:bg-red-50">
@@ -166,6 +197,18 @@ export default function InsuranceClaimDetailPage() {
           <div className="bg-white rounded-xl p-6 w-full max-w-md" dir="rtl">
             <h2 className="text-lg font-semibold mb-4">تسجيل دفعة تأمين</h2>
             <div className="space-y-3">
+              {vaults.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">الخزينة</label>
+                  <select
+                    className="w-full border rounded-lg p-2 text-sm"
+                    value={payment.vaultId}
+                    onChange={(e) => setPayment({ ...payment, vaultId: e.target.value })}
+                  >
+                    {vaults.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                  </select>
+                </div>
+              )}
               <input
                 type="number"
                 placeholder="المبلغ"

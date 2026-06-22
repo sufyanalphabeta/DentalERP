@@ -25,6 +25,19 @@ public sealed class RecordInsurancePaymentCommandHandler(FinancialDbContext db)
         var result = claim.RecordPayment(payment);
         if (!result.IsSuccess) return result;
 
+        if (request.VaultId.HasValue)
+        {
+            var vaultTx = VaultTransaction.Create(
+                request.VaultId.Value,
+                "general_receipt",
+                request.Amount,
+                "in",
+                referenceNumber: request.ReferenceNumber,
+                notes: request.Notes,
+                createdByUserId: request.ReceivedById);
+            db.VaultTransactions.Add(vaultTx);
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

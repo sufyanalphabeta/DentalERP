@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
@@ -20,14 +20,38 @@ const STATUS_COLORS: Record<QueueStatus, string> = {
   Skipped: "bg-red-100 text-red-800",
 };
 
+interface Patient {
+  id: string;
+  fullName: string;
+  phone: string | null;
+}
+
+interface Doctor {
+  id: string;
+  fullName: string;
+  roles: string[];
+}
+
 export default function QueuePage() {
   const [queue, setQueue] = useState<GetQueueResponse | null>(null);
   const [today] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(true);
 
+  // Check-in modal
+  const [showCheckin, setShowCheckin] = useState(false);
+  const [patientSearch, setPatientSearch] = useState("");
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [checkinNotes, setCheckinNotes] = useState("");
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkinError, setCheckinError] = useState<string | null>(null);
+  const [checkinSuccess, setCheckinSuccess] = useState<string | null>(null);
+
   const fetchQueue = useCallback(async () => {
     try {
-      const res = await api.get<GetQueueResponse>(`/api/queue?date=${today}`);
+      const res = await api.get<GetQueueResponse>(`/queue?date=${today}`);
       setQueue(res.data);
     } finally {
       setLoading(false);
@@ -41,8 +65,54 @@ export default function QueuePage() {
   }, [fetchQueue]);
 
   async function updateStatus(id: string, status: QueueStatus) {
-    await api.patch(`/api/queue/${id}/status`, { status });
+    await api.patch(`/queue/${id}/status`, { status });
     fetchQueue();
+  }
+
+  async function openCheckin() {
+    setShowCheckin(true);
+    setSelectedPatient(null);
+    setPatientSearch("");
+    setSelectedDoctorId("");
+    setCheckinNotes("");
+    setCheckinError(null);
+
+    // Load doctors
+    try {
+      const r = await api.get<{ items: Doctor[] }>("/users?pageSize=200");
+      setDoctors((r.data.items ?? []).filter((u) => u.roles?.includes("Doctor")));
+    } catch { /* ignore */ }
+  }
+
+  async function searchPatients(q: string) {
+    setPatientSearch(q);
+    if (q.length < 2) { setPatients([]); return; }
+    try {
+      const r = await api.get<{ items: Patient[] }>(`/patients?search=${encodeURIComponent(q)}&pageSize=15`);
+      setPatients(r.data.items ?? []);
+    } catch { /* ignore */ }
+  }
+
+  async function checkIn() {
+    if (!selectedPatient) return;
+    setCheckingIn(true);
+    setCheckinError(null);
+    try {
+      const r = await api.post<{ queueEntryId: string; tokenNumber: number }>("/queue/check-in", {
+        patientId: selectedPatient.id,
+        doctorId: selectedDoctorId || null,
+        notes: checkinNotes || null,
+      });
+      setShowCheckin(false);
+      fetchQueue();
+      setCheckinSuccess(`تم تسجيل دخول ${selectedPatient.fullName} — رقم الدور: ${r.data.tokenNumber}`);
+      setTimeout(() => setCheckinSuccess(null), 4000);
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { error?: string; message?: string } } };
+      setCheckinError(err?.response?.data?.error ?? err?.response?.data?.message ?? "حدث خطأ");
+    } finally {
+      setCheckingIn(false);
+    }
   }
 
   const active = queue?.entries.filter(e =>
@@ -67,8 +137,20 @@ export default function QueuePage() {
               مكتمل: {done.length}
             </span>
           </div>
+          <button
+            onClick={openCheckin}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"
+          >
+            + تسجيل دخول مريض
+          </button>
         </div>
       </div>
+
+      {checkinSuccess && (
+        <div className="mb-4 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm">
+          <span className="font-medium">{checkinSuccess}</span>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-gray-500">جاري التحميل...</div>
@@ -167,6 +249,88 @@ export default function QueuePage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Check-in modal */}
+      {showCheckin && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6" dir="rtl">
+            <h2 className="text-lg font-bold mb-4">تسجيل دخول مريض</h2>
+            {checkinError && <div className="mb-3 text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{checkinError}</div>}
+
+            <div className="space-y-3">
+              {/* Patient search */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">المريض *</label>
+                {selectedPatient ? (
+                  <div className="flex items-center justify-between border rounded-lg px-3 py-2 bg-blue-50">
+                    <div>
+                      <div className="text-sm font-medium text-gray-800">{selectedPatient.fullName}</div>
+                      {selectedPatient.phone && <div className="text-xs text-gray-500">{selectedPatient.phone}</div>}
+                    </div>
+                    <button onClick={() => { setSelectedPatient(null); setPatientSearch(""); setPatients([]); }}
+                      className="text-xs text-red-500 hover:text-red-700">تغيير</button>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="ابحث باسم المريض أو الهاتف..."
+                      value={patientSearch}
+                      onChange={(e) => searchPatients(e.target.value)}
+                      className="w-full border rounded-lg px-3 py-2 text-sm"
+                      autoFocus
+                    />
+                    {patients.length > 0 && (
+                      <div className="border rounded-lg mt-1 max-h-40 overflow-y-auto bg-white shadow">
+                        {patients.map((p) => (
+                          <button key={p.id} onClick={() => { setSelectedPatient(p); setPatients([]); setPatientSearch(""); }}
+                            className="w-full text-right px-3 py-2 hover:bg-blue-50 text-sm border-b last:border-0">
+                            <div className="font-medium text-gray-800">{p.fullName}</div>
+                            {p.phone && <div className="text-xs text-gray-400">{p.phone}</div>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {patientSearch.length >= 2 && patients.length === 0 && (
+                      <div className="text-xs text-gray-400 mt-1 px-1">لم يتم إيجاد مريض</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Doctor (optional) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">الطبيب (اختياري)</label>
+                <select className="w-full border rounded-lg px-3 py-2 text-sm" value={selectedDoctorId}
+                  onChange={(e) => setSelectedDoctorId(e.target.value)}>
+                  <option value="">— بدون تحديد طبيب —</option>
+                  {doctors.map((d) => <option key={d.id} value={d.id}>{d.fullName}</option>)}
+                </select>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
+                <input className="w-full border rounded-lg px-3 py-2 text-sm"
+                  placeholder="شكوى المريض أو ملاحظة..."
+                  value={checkinNotes}
+                  onChange={(e) => setCheckinNotes(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={checkIn}
+                disabled={checkingIn || !selectedPatient}
+                className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 font-medium"
+              >
+                {checkingIn ? "جاري التسجيل..." : "تسجيل الدخول"}
+              </button>
+              <button onClick={() => setShowCheckin(false)} className="flex-1 border py-2 rounded-lg text-sm text-gray-700">إلغاء</button>
+            </div>
           </div>
         </div>
       )}
