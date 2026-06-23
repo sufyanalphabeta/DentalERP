@@ -3,6 +3,7 @@ using DentalERP.Modules.Financial.Features.Analytics.GetARAgingReport;
 using DentalERP.Modules.Financial.Features.Analytics.GetCollectionSummary;
 using DentalERP.Modules.Financial.Features.Analytics.GetCollectionSummaryPdf;
 using DentalERP.Modules.Financial.Features.Analytics.GetDoctorPerformance;
+using DentalERP.Modules.Financial.Features.Analytics.GetExecutiveDashboard;
 using DentalERP.Modules.Financial.Features.Analytics.GetInactivePatients;
 using DentalERP.Modules.Financial.Features.Analytics.GetMonthlyRevenue;
 using DentalERP.Modules.Financial.Features.Analytics.GetOverdueInstallments;
@@ -80,6 +81,12 @@ public static class AnalyticsEndpoints
             return result.IsSuccess
                 ? Results.File(result.Value, "application/pdf", "collection-summary.pdf")
                 : Results.BadRequest(result.Error);
+        });
+
+        analytics.MapGet("/executive-dashboard", async (IMediator mediator) =>
+        {
+            var result = await mediator.Send(new GetExecutiveDashboardQuery());
+            return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
         });
 
         return app;
