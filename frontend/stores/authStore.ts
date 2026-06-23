@@ -36,8 +36,12 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, accessToken: null, refreshToken: null });
       },
 
-      hasPermission: (permission) =>
-        get().user?.permissions.includes(permission) ?? false,
+      hasPermission: (permission) => {
+        const perms = get().user?.permissions;
+        if (!perms) return false;
+        if (perms.includes("*")) return true;
+        return perms.includes(permission);
+      },
     }),
     {
       name: "dental-erp-auth",

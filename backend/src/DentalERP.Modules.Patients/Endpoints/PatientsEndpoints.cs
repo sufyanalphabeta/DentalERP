@@ -3,6 +3,7 @@ using DentalERP.Modules.Patients.Features.Patients.DeletePatient;
 using DentalERP.Modules.Patients.Features.Patients.GetPatient;
 using DentalERP.Modules.Patients.Features.Patients.GetPatients;
 using DentalERP.Modules.Patients.Features.Patients.UpdatePatient;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -14,7 +15,7 @@ public static class PatientsEndpoints
 {
     public static void MapPatientsEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/patients").RequireAuthorization();
+        var group = app.MapGroup("/api/patients");
 
         group.MapGet("/", async (
             string? search, int? page, int? pageSize,
@@ -23,13 +24,13 @@ public static class PatientsEndpoints
             var result = await mediator.Send(
                 new GetPatientsQuery(search, page ?? 1, pageSize ?? 20), ct);
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Patients.Patients.View");
 
         group.MapGet("/{id:guid}", async (Guid id, IMediator mediator, CancellationToken ct) =>
         {
             var result = await mediator.Send(new GetPatientQuery(id), ct);
             return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound(result.Error);
-        });
+        }).RequirePermission("Patients.Patients.View");
 
         group.MapPost("/", async (CreatePatientCommand command, IMediator mediator, CancellationToken ct) =>
         {
@@ -37,7 +38,7 @@ public static class PatientsEndpoints
             return result.IsSuccess
                 ? Results.Created($"/api/patients/{result.Value!.Id}", result.Value)
                 : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Patients.Patients.Create");
 
         group.MapPut("/{id:guid}", async (
             Guid id, UpdatePatientRequest request,
@@ -50,13 +51,13 @@ public static class PatientsEndpoints
                 request.ChronicDiseases, request.Notes);
             var result = await mediator.Send(command, ct);
             return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Patients.Patients.Edit");
 
         group.MapDelete("/{id:guid}", async (Guid id, IMediator mediator, CancellationToken ct) =>
         {
             var result = await mediator.Send(new DeletePatientCommand(id), ct);
             return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Patients.Patients.Delete");
     }
 }
 

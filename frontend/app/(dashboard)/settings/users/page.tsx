@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api } from "@/lib/api";
 
 interface Role {
@@ -225,6 +226,12 @@ export default function UsersPage() {
                     >
                       {u.isActive ? "إيقاف" : "تفعيل"}
                     </button>
+                    <Link
+                      href={`/settings/users/${u.id}/permissions`}
+                      className="text-xs px-3 py-1 rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50"
+                    >
+                      الصلاحيات
+                    </Link>
                   </div>
                 </td>
               </tr>

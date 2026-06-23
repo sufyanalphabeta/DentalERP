@@ -8,6 +8,7 @@ using DentalERP.Modules.Purchasing.Features.GetSupplierStatement;
 using DentalERP.Modules.Purchasing.Features.GetSupplierStatementPdf;
 using DentalERP.Modules.Purchasing.Features.LookupBySupplierCode;
 using DentalERP.Modules.Purchasing.Features.UpdateSupplier;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -19,14 +20,14 @@ public static class SupplierEndpoints
 {
     public static IEndpointRouteBuilder MapSupplierEndpoints(this IEndpointRouteBuilder app)
     {
-        var sup = app.MapGroup("/api/suppliers").RequireAuthorization();
+        var sup = app.MapGroup("/api/suppliers");
 
         sup.MapGet("/", async (IMediator mediator,
             string? search, bool? activeOnly, string? category, int page = 1, int pageSize = 20) =>
         {
             var r = await mediator.Send(new GetSuppliersQuery(search, activeOnly, category, page, pageSize));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Suppliers.View");
 
         sup.MapPost("/", async (IMediator mediator, CreateSupplierCommand cmd) =>
         {
@@ -34,25 +35,25 @@ public static class SupplierEndpoints
             return r.IsSuccess
                 ? Results.Created($"/api/suppliers/{r.Value}", new { id = r.Value })
                 : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Suppliers.Create");
 
         sup.MapGet("/{id:guid}", async (IMediator mediator, Guid id) =>
         {
             var r = await mediator.Send(new GetSupplierDetailQuery(id));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.NotFound(r.Error);
-        });
+        }).RequirePermission("Purchasing.Suppliers.View");
 
         sup.MapPut("/{id:guid}", async (IMediator mediator, Guid id, UpdateSupplierCommand cmd) =>
         {
             var r = await mediator.Send(cmd with { SupplierId = id });
             return r.IsSuccess ? Results.NoContent() : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Suppliers.Edit");
 
         sup.MapGet("/{id:guid}/balance", async (IMediator mediator, Guid id) =>
         {
             var r = await mediator.Send(new GetSupplierBalanceQuery(id));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.NotFound(r.Error);
-        });
+        }).RequirePermission("Purchasing.Suppliers.View");
 
         sup.MapGet("/{id:guid}/statement", async (IMediator mediator, Guid id,
             DateOnly? from, DateOnly? to) =>
@@ -65,7 +66,7 @@ public static class SupplierEndpoints
                 : (DateTime?)null;
             var r = await mediator.Send(new GetSupplierStatementQuery(id, fromDt, toDt));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.NotFound(r.Error);
-        });
+        }).RequirePermission("Purchasing.Suppliers.View");
 
         sup.MapGet("/{id:guid}/statement/pdf", async (IMediator mediator, Guid id, DateOnly? from, DateOnly? to, string? clinicName) =>
         {
@@ -75,13 +76,13 @@ public static class SupplierEndpoints
             return r.IsSuccess
                 ? Results.File(r.Value, "application/pdf", $"supplier-statement-{id}.pdf")
                 : Results.NotFound(r.Error);
-        });
+        }).RequirePermission("Reports.Purchasing.ExportPdf");
 
         sup.MapGet("/{id:guid}/catalog", async (IMediator mediator, Guid id) =>
         {
             var r = await mediator.Send(new GetSupplierItemCatalogQuery(id));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Suppliers.View");
 
         sup.MapPost("/{id:guid}/catalog", async (IMediator mediator, Guid id, AddSupplierItemCodeCommand cmd) =>
         {
@@ -89,13 +90,13 @@ public static class SupplierEndpoints
             return r.IsSuccess
                 ? Results.Created($"/api/suppliers/{id}/catalog/{r.Value}", new { id = r.Value })
                 : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Suppliers.Edit");
 
         sup.MapGet("/{id:guid}/catalog/lookup", async (IMediator mediator, Guid id, string code) =>
         {
             var r = await mediator.Send(new LookupBySupplierCodeQuery(id, code));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.NotFound(r.Error);
-        });
+        }).RequirePermission("Purchasing.Suppliers.View");
 
         return app;
     }

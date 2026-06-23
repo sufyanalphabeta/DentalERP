@@ -20,7 +20,7 @@ public sealed class GetRoleQueryHandler(IAMDbContext db)
         return Result.Success(new RoleDetail(
             role.Id, role.Name, role.Description, role.IsSystem,
             role.RolePermissions
-                .Select(rp => new PermissionInfo(rp.Permission.Id, rp.Permission.Name, rp.Permission.DisplayName, rp.Permission.Module))
+                .Select(rp => new PermissionInfo(rp.Permission.Id, rp.Permission.Name, rp.Permission.DisplayName, rp.Permission.Module, rp.Permission.Screen))
                 .ToList()
         ));
     }

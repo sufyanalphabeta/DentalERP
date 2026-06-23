@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { useAuthStore } from "@/stores/authStore";
 
 interface ExpenseCategory {
   id: string;
@@ -56,6 +57,7 @@ const emptyForm = {
 };
 
 export default function ExpensesPage() {
+  const hasPermission = useAuthStore((s) => s.hasPermission);
   const [data, setData] = useState<ExpensesResponse | null>(null);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [vaults, setVaults] = useState<Vault[]>([]);
@@ -145,7 +147,7 @@ export default function ExpensesPage() {
       amount: String(exp.amount),
       categoryId: exp.categoryId ?? "",
       costCenter: exp.costCenter ?? "GENERAL",
-      expenseDate: exp.expenseDate.split("T")[0],
+      expenseDate: (exp.expenseDate ?? "").split("T")[0],
       notes: exp.notes ?? "",
       vaultId: exp.vaultId ?? "",
     });
@@ -155,6 +157,15 @@ export default function ExpensesPage() {
 
   const totalPages = data ? Math.ceil(data.totalCount / 25) : 1;
   const totalAmount = (data?.items ?? []).reduce((s, e) => s + e.amount, 0);
+
+  if (!hasPermission("Financial.Expenses.View")) {
+    return (
+      <div className="p-12 text-center text-gray-400" dir="rtl">
+        <p className="text-lg font-semibold">403 — غير مصرح</p>
+        <p className="text-sm mt-1">ليس لديك صلاحية عرض المصروفات</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6" dir="rtl">

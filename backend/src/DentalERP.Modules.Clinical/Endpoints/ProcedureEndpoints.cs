@@ -1,4 +1,5 @@
 using DentalERP.Modules.Clinical.Features.Procedures.AddProcedure;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -25,7 +26,7 @@ public static class ProcedureEndpoints
                     ? Results.Created($"/api/procedures/{result.Value}", new { id = result.Value })
                     : Results.BadRequest(result.Error);
             })
-            .RequireAuthorization()
+            .RequirePermission("Clinical.Procedures.Create")
             .WithName("AddProcedure")
             .Produces(201).Produces(400).Produces(401);
 

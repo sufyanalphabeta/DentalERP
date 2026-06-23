@@ -1,5 +1,6 @@
 using DentalERP.Modules.Clinical.Features.Chart.GetChart;
 using DentalERP.Modules.Clinical.Features.Chart.UpdateChart;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -12,14 +13,14 @@ public static class ChartEndpoints
 {
     public static IEndpointRouteBuilder MapChartEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/patients/{patientId}/chart")
-            .RequireAuthorization();
+        var group = app.MapGroup("/api/patients/{patientId}/chart");
 
         group.MapGet("", async (Guid patientId, ISender sender, CancellationToken ct) =>
         {
             var result = await sender.Send(new GetChartQuery(patientId), ct);
             return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound(result.Error);
         })
+        .RequirePermission("Clinical.DentalChart.View")
         .WithName("GetChart")
         .Produces<GetChartResponse>()
         .Produces(401).Produces(404);
@@ -35,6 +36,7 @@ public static class ChartEndpoints
                 ? Results.Created($"/api/patients/{patientId}/chart/{result.Value}", new { id = result.Value })
                 : Results.BadRequest(result.Error);
         })
+        .RequirePermission("Clinical.DentalChart.Edit")
         .WithName("UpdateChart")
         .Produces(201).Produces(400).Produces(401);
 

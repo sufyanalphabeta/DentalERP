@@ -10,6 +10,7 @@ public sealed class IAMDbContext(DbContextOptions<IAMDbContext> options) : DbCon
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
+    public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();

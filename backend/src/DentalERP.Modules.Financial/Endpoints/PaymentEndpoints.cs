@@ -1,4 +1,5 @@
 using DentalERP.Modules.Financial.Features.Payments.AddPayment;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +11,7 @@ public static class PaymentEndpoints
 {
     public static IEndpointRouteBuilder MapPaymentEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/invoices").RequireAuthorization();
+        var group = app.MapGroup("/api/invoices");
 
         group.MapPost("/{id:guid}/payments", async (IMediator mediator, Guid id, AddPaymentRequest req) =>
         {
@@ -18,7 +19,7 @@ public static class PaymentEndpoints
                 id, req.VaultId, req.Amount, req.PaymentMethod,
                 req.ReferenceNumber, req.Notes, req.CreatedByUserId));
             return result.IsSuccess ? Results.Created($"/api/payments/{result.Value}", new { id = result.Value }) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Financial.Payments.Create");
 
         return app;
     }

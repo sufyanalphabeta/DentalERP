@@ -98,7 +98,8 @@ function calcAge(dob?: string | null) {
   if (isNaN(d.getTime())) return null;
   return Math.floor((Date.now() - d.getTime()) / (365.25 * 864e5)) + " سنة";
 }
-function fmtLYD(v: number) {
+function fmtLYD(v: number | null | undefined): string {
+  if (v == null) return "—";
   return v.toLocaleString("ar-LY", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " د.ل";
 }
 function apptTime(a: Appointment) {

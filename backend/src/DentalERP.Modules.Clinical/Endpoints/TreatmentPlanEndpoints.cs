@@ -1,5 +1,6 @@
 using DentalERP.Modules.Clinical.Features.TreatmentPlans.CreateTreatmentPlan;
 using DentalERP.Modules.Clinical.Features.TreatmentPlans.UpdateTreatmentPlanStatus;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -24,7 +25,7 @@ public static class TreatmentPlanEndpoints
                     ? Results.Created($"/api/treatment-plans/{result.Value}", new { id = result.Value })
                     : Results.BadRequest(result.Error);
             })
-            .RequireAuthorization()
+            .RequirePermission("Clinical.TreatmentPlans.Create")
             .WithName("CreateTreatmentPlan")
             .Produces(201).Produces(400).Produces(401);
 
@@ -36,7 +37,7 @@ public static class TreatmentPlanEndpoints
                 var result = await sender.Send(new UpdateTreatmentPlanStatusCommand(id, req.Status, userId), ct);
                 return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
             })
-            .RequireAuthorization()
+            .RequireAnyPermission("Clinical.TreatmentPlans.Edit", "Clinical.TreatmentPlans.Approve")
             .WithName("UpdateTreatmentPlanStatus")
             .Produces(204).Produces(400).Produces(401);
 

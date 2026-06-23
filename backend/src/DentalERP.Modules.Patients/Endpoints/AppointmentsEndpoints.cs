@@ -2,6 +2,7 @@ using DentalERP.Modules.Patients.Features.Appointments.CreateAppointment;
 using DentalERP.Modules.Patients.Features.Appointments.GetAppointments;
 using DentalERP.Modules.Patients.Features.Appointments.UpdateAppointmentStatus;
 using DentalERP.Modules.Patients.Infrastructure;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -22,9 +23,9 @@ public static class AppointmentsEndpoints
                 .Select(t => new { t.Id, t.Name, t.NameAr, t.DefaultDurationMinutes, t.Color })
                 .ToListAsync(ct);
             return Results.Ok(types);
-        }).RequireAuthorization();
+        }).RequirePermission("Appointments.Appointments.View");
 
-        var group = app.MapGroup("/api/appointments").RequireAuthorization();
+        var group = app.MapGroup("/api/appointments");
 
         group.MapGet("/", async (
             string? fromDate, string? toDate, Guid? doctorId, Guid? patientId,
@@ -36,7 +37,7 @@ public static class AppointmentsEndpoints
             var result = await mediator.Send(
                 new GetAppointmentsQuery(from, to, doctorId, patientId, status, page ?? 1, pageSize ?? 50), ct);
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Appointments.Appointments.View");
 
         group.MapPost("/", async (CreateAppointmentCommand command, IMediator mediator, CancellationToken ct) =>
         {
@@ -44,7 +45,7 @@ public static class AppointmentsEndpoints
             return result.IsSuccess
                 ? Results.Created($"/api/appointments/{result.Value}", new { Id = result.Value })
                 : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Appointments.Appointments.Create");
 
         group.MapPatch("/{id:guid}/status", async (
             Guid id, UpdateStatusRequest request,
@@ -53,7 +54,7 @@ public static class AppointmentsEndpoints
             var result = await mediator.Send(
                 new UpdateAppointmentStatusCommand(id, request.Status, request.CancellationReason), ct);
             return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
-        });
+        }).RequireAnyPermission("Appointments.Appointments.Edit", "Appointments.Appointments.Cancel");
     }
 }
 

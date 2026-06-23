@@ -4,5 +4,5 @@ using MediatR;
 
 namespace DentalERP.Modules.IAM.Features.Roles.DeleteRole;
 
-[RequirePermission("Roles.Delete")]
+[RequirePermission("IAM.Roles.Delete")]
 public sealed record DeleteRoleCommand(Guid RoleId) : IRequest<Result>;

@@ -4,7 +4,7 @@ using MediatR;
 
 namespace DentalERP.Modules.IAM.Features.Users.GetUsers;
 
-[RequirePermission("Users.View")]
+[RequirePermission("IAM.Users.View")]
 public sealed record GetUsersQuery(int Page = 1, int PageSize = 20, string? Search = null)
     : IRequest<Result<GetUsersResponse>>;
 

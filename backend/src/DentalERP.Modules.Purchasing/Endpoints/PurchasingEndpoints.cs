@@ -9,6 +9,7 @@ using DentalERP.Modules.Purchasing.Features.GetPurchaseReturnDetail;
 using DentalERP.Modules.Purchasing.Features.GetPurchaseReturns;
 using DentalERP.Modules.Purchasing.Features.RecordSupplierPayment;
 using DentalERP.Modules.Purchasing.Infrastructure;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -21,16 +22,15 @@ public static class PurchasingEndpoints
 {
     public static IEndpointRouteBuilder MapPurchasingEndpoints(this IEndpointRouteBuilder app)
     {
-        var grp = app.MapGroup("/api/purchasing").RequireAuthorization();
+        var grp = app.MapGroup("/api/purchasing");
 
-        // ── Supplier Payments ────────────────────────────────────────────────
         grp.MapPost("/supplier-payments", async (IMediator mediator, RecordSupplierPaymentCommand cmd) =>
         {
             var r = await mediator.Send(cmd);
             return r.IsSuccess
                 ? Results.Created($"/api/purchasing/supplier-payments/{r.Value}", new { id = r.Value })
                 : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Invoices.Create");
 
         grp.MapGet("/supplier-payments", async (PurchasingDbContext db, CancellationToken ct,
             Guid? supplierId, int page = 1, int pageSize = 30) =>
@@ -47,15 +47,14 @@ public static class PurchasingEndpoints
                 })
                 .ToListAsync(ct);
             return Results.Ok(new { items, total, page, pageSize });
-        });
+        }).RequirePermission("Purchasing.Invoices.View");
 
-        // ── Purchase Returns ─────────────────────────────────────────────────
         grp.MapGet("/purchase-returns", async (IMediator mediator,
             Guid? supplierId, string? status, int page = 1, int pageSize = 20) =>
         {
             var r = await mediator.Send(new GetPurchaseReturnsQuery(supplierId, status, page, pageSize));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Returns.View");
 
         grp.MapPost("/purchase-returns", async (IMediator mediator, CreatePurchaseReturnCommand cmd) =>
         {
@@ -63,31 +62,31 @@ public static class PurchasingEndpoints
             return r.IsSuccess
                 ? Results.Created($"/api/purchasing/purchase-returns/{r.Value}", new { id = r.Value })
                 : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Returns.Create");
 
         grp.MapGet("/purchase-returns/{id:guid}", async (IMediator mediator, Guid id) =>
         {
             var r = await mediator.Send(new GetPurchaseReturnDetailQuery(id));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.NotFound(r.Error);
-        });
+        }).RequirePermission("Purchasing.Returns.View");
 
         grp.MapPost("/purchase-returns/{id:guid}/confirm", async (IMediator mediator, Guid id, ConfirmPurchaseReturnCommand cmd) =>
         {
             var r = await mediator.Send(cmd with { ReturnId = id });
             return r.IsSuccess ? Results.NoContent() : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Orders.Approve");
 
         grp.MapPost("/purchase-returns/{id:guid}/complete", async (IMediator mediator, Guid id, CompletePurchaseReturnCommand cmd) =>
         {
             var r = await mediator.Send(cmd with { ReturnId = id });
             return r.IsSuccess ? Results.NoContent() : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Orders.Approve");
 
         grp.MapPost("/purchase-returns/{id:guid}/cancel", async (IMediator mediator, Guid id, CancelPurchaseReturnCommand cmd) =>
         {
             var r = await mediator.Send(cmd with { ReturnId = id });
             return r.IsSuccess ? Results.NoContent() : Results.BadRequest(new { error = r.Error.Message });
-        });
+        }).RequirePermission("Purchasing.Returns.Create");
 
         grp.MapDelete("/purchase-returns/{id:guid}", async (PurchasingDbContext db, Guid id, CancellationToken ct) =>
         {
@@ -97,16 +96,15 @@ public static class PurchasingEndpoints
             db.PurchaseReturns.Remove(ret);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
-        });
+        }).RequirePermission("Purchasing.Returns.Create");
 
         grp.MapGet("/purchase-returns/{id:guid}/voucher", async (IMediator mediator, Guid id) =>
         {
             var r = await mediator.Send(new GeneratePurchaseReturnVoucherQuery(id));
             if (r.IsFailure) return Results.NotFound(r.Error);
             return Results.File(r.Value, "application/pdf", $"return-voucher-{id}.pdf");
-        });
+        }).RequirePermission("Purchasing.Invoices.Print");
 
-        // ── Purchasing Report PDF ────────────────────────────────────────────
         grp.MapGet("/invoices/report/pdf", async (IMediator mediator,
             Guid? supplierId, string? status,
             DateOnly? from, DateOnly? to, string? clinicName) =>
@@ -115,14 +113,13 @@ public static class PurchasingEndpoints
             return r.IsSuccess
                 ? Results.File(r.Value, "application/pdf", $"purchasing-report.pdf")
                 : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Invoices.ExportPdf");
 
-        // ── Supplier Deactivation / Deletion ─────────────────────────────────
         grp.MapDelete("/suppliers/{id:guid}", async (IMediator mediator, Guid id) =>
         {
             var r = await mediator.Send(new DeleteSupplierCommand(id));
             return r.IsSuccess ? Results.Ok(new { result = r.Value }) : Results.BadRequest(new { error = r.Error.Message });
-        });
+        }).RequirePermission("Purchasing.Suppliers.Edit");
 
         return app;
     }

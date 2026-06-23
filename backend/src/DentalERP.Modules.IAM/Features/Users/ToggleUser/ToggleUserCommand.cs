@@ -4,5 +4,5 @@ using MediatR;
 
 namespace DentalERP.Modules.IAM.Features.Users.ToggleUser;
 
-[RequirePermission("Users.Edit")]
+[RequirePermission("IAM.Users.Edit")]
 public sealed record ToggleUserCommand(Guid UserId, bool IsActive) : IRequest<Result>;

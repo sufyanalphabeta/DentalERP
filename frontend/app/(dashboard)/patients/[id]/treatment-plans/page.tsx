@@ -159,20 +159,20 @@ export default function TreatmentPlansPage() {
               <div className="grid grid-cols-4 gap-3 bg-gray-50 rounded-lg p-3 text-sm">
                 <div className="text-center">
                   <div className="text-gray-500 text-xs">التقدير</div>
-                  <div className="font-semibold">{plan.estimatedCost.toLocaleString()} ر.س</div>
+                  <div className="font-semibold">{(plan.estimatedCost ?? 0).toLocaleString()} ر.س</div>
                 </div>
                 <div className="text-center">
                   <div className="text-gray-500 text-xs">الإجمالي</div>
-                  <div className="font-semibold">{plan.totalCost.toLocaleString()} ر.س</div>
+                  <div className="font-semibold">{(plan.totalCost ?? 0).toLocaleString()} ر.س</div>
                 </div>
                 <div className="text-center">
                   <div className="text-gray-500 text-xs">المنفَّذ</div>
-                  <div className="font-semibold text-green-600">{plan.actualCost.toLocaleString()} ر.س</div>
+                  <div className="font-semibold text-green-600">{(plan.actualCost ?? 0).toLocaleString()} ر.س</div>
                 </div>
                 <div className="text-center">
                   <div className="text-gray-500 text-xs">المتبقي</div>
                   <div className="font-semibold text-orange-600">
-                    {(plan.totalCost - plan.paidAmount).toLocaleString()} ر.س
+                    {((plan.totalCost ?? 0) - (plan.paidAmount ?? 0)).toLocaleString()} ر.س
                   </div>
                 </div>
               </div>

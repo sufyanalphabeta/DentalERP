@@ -1,5 +1,6 @@
 using DentalERP.Modules.Clinical.Features.Assignments.AssignDoctor;
 using DentalERP.Modules.Clinical.Features.Assignments.TransferDoctor;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -12,8 +13,7 @@ public static class AssignmentEndpoints
 {
     public static IEndpointRouteBuilder MapAssignmentEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/patients/{patientId}/doctors")
-            .RequireAuthorization();
+        var group = app.MapGroup("/api/patients/{patientId}/doctors");
 
         group.MapPost("", async (Guid patientId, AssignDoctorRequest req, ISender sender,
             ClaimsPrincipal user, CancellationToken ct) =>
@@ -25,6 +25,7 @@ public static class AssignmentEndpoints
                 ? Results.Created($"/api/patients/{patientId}/doctors/{result.Value}", new { id = result.Value })
                 : Results.BadRequest(result.Error);
         })
+        .RequirePermission("Patients.Patients.Edit")
         .WithName("AssignDoctor")
         .Produces(201).Produces(400).Produces(401).Produces(409);
 
@@ -39,6 +40,7 @@ public static class AssignmentEndpoints
                     ? Results.Ok(new { newAssignmentId = result.Value })
                     : Results.BadRequest(result.Error);
             })
+        .RequirePermission("Patients.Patients.Edit")
         .WithName("TransferDoctor")
         .Produces(200).Produces(400).Produces(401).Produces(404);
 

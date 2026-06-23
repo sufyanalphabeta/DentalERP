@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
+import { useAuthStore } from "@/stores/authStore";
 
 interface InactivePatient {
   patientId: string;
@@ -45,6 +46,7 @@ interface DoctorPerformance {
 type Section = "inactive" | "overdue" | "revenue" | "doctors";
 
 export default function OperationalReportsPage() {
+  const hasPermission = useAuthStore((s) => s.hasPermission);
   const [activeSection, setActiveSection] = useState<Section>("inactive");
 
   const [inactivePatients, setInactivePatients] = useState<InactivePatient[]>([]);
@@ -112,6 +114,15 @@ export default function OperationalReportsPage() {
     { key: "revenue", label: "الإيرادات الشهرية", icon: "📈" },
     { key: "doctors", label: "أداء الأطباء", icon: "🩺" },
   ];
+
+  if (!hasPermission("Reports.Operational.View")) {
+    return (
+      <div className="p-12 text-center text-gray-400" dir="rtl">
+        <p className="text-lg font-semibold">403 — غير مصرح</p>
+        <p className="text-sm mt-1">ليس لديك صلاحية عرض التقارير التشغيلية</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-6xl mx-auto" dir="rtl">
@@ -366,7 +377,7 @@ export default function OperationalReportsPage() {
                             style={{ height: `${heightPct}%`, minHeight: m.invoiceCount > 0 ? "4px" : "0" }}
                           />
                         </div>
-                        <span className="text-xs text-gray-500 text-center leading-tight">{m.monthLabel.split(" ")[0]}</span>
+                        <span className="text-xs text-gray-500 text-center leading-tight">{(m.monthLabel ?? "").split(" ")[0]}</span>
                       </div>
                     );
                   })}

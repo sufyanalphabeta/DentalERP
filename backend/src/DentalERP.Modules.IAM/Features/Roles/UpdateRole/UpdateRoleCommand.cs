@@ -4,7 +4,7 @@ using MediatR;
 
 namespace DentalERP.Modules.IAM.Features.Roles.UpdateRole;
 
-[RequirePermission("Roles.Edit")]
+[RequirePermission("IAM.Roles.Edit")]
 public sealed record UpdateRoleCommand(
     Guid RoleId,
     string Name,

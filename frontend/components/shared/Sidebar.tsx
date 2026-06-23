@@ -56,37 +56,38 @@ const NAV: NavGroup[] = [
     icon: MonitorSmartphone,
     section: "operations",
     items: [
-      { href: "/reception",    label: "مساحة الاستقبال", labelEn: "Reception Desk" },
-      { href: "/patients",     label: "المرضى",           labelEn: "Patients",    permission: "Patients.View" },
-      { href: "/appointments", label: "المواعيد",          labelEn: "Appointments",permission: "Appointments.View" },
-      { href: "/queue",        label: "طابور الانتظار",    labelEn: "Waiting Queue",permission: "Appointments.View" },
+      { href: "/reception",    label: "مساحة الاستقبال", labelEn: "Reception Desk",   permission: "Appointments.Queue.View" },
+      { href: "/patients",     label: "المرضى",           labelEn: "Patients",         permission: "Patients.Patients.View" },
+      { href: "/appointments", label: "المواعيد",          labelEn: "Appointments",     permission: "Appointments.Appointments.View" },
+      { href: "/queue",        label: "طابور الانتظار",    labelEn: "Waiting Queue",    permission: "Appointments.Queue.View" },
     ],
   },
   {
     label: "السريرية", labelEn: "Clinical",
     icon: HeartPulse,
     section: "operations",
+    permission: "Clinical.Workspace.View",
     items: [
-      { href: "/clinical/workspace", label: "مساحة الطبيب", labelEn: "Doctor's Workspace" },
+      { href: "/clinical/workspace", label: "مساحة الطبيب", labelEn: "Doctor's Workspace", permission: "Clinical.Workspace.View" },
     ],
   },
   {
     label: "المختبر", labelEn: "Laboratory",
     icon: FlaskConical,
     section: "operations",
-    permission: "Lab.View",
+    permission: "Lab.Orders.View",
     items: [
-      { href: "/lab/orders",        label: "طلبات المختبر",    labelEn: "Lab Orders",       permission: "Lab.View" },
-      { href: "/lab/external-labs", label: "المختبرات الخارجية",labelEn: "External Labs",   permission: "Lab.View" },
+      { href: "/lab/orders",        label: "طلبات المختبر",    labelEn: "Lab Orders",       permission: "Lab.Orders.View" },
+      { href: "/lab/external-labs", label: "المختبرات الخارجية",labelEn: "External Labs",   permission: "Lab.ExternalLabs.View" },
     ],
   },
   {
     label: "الأشعة", labelEn: "Radiology",
     icon: ScanLine,
     section: "operations",
-    permission: "Radiology.View",
+    permission: "Radiology.Orders.View",
     items: [
-      { href: "/radiology/orders", label: "طلبات الأشعة", labelEn: "Radiology Orders", permission: "Radiology.View" },
+      { href: "/radiology/orders", label: "طلبات الأشعة", labelEn: "Radiology Orders", permission: "Radiology.Orders.View" },
     ],
   },
 
@@ -95,36 +96,36 @@ const NAV: NavGroup[] = [
     label: "الصندوق", labelEn: "Cashier",
     icon: CreditCard,
     section: "financial",
-    permission: "Treasury.View",
+    permission: "Financial.Invoices.View",
     items: [
-      { href: "/finance/cashier",      label: "مساحة الصراف", labelEn: "Cashier Desk",   permission: "Treasury.View" },
-      { href: "/finance/invoices",     label: "الفواتير",     labelEn: "Invoices",       permission: "Treasury.View" },
-      { href: "/finance/installments", label: "الأقساط",      labelEn: "Installments",   permission: "Treasury.View" },
+      { href: "/finance/cashier",      label: "مساحة الصراف", labelEn: "Cashier Desk",   permission: "Financial.CashierDesk.View" },
+      { href: "/finance/invoices",     label: "الفواتير",     labelEn: "Invoices",       permission: "Financial.Invoices.View" },
+      { href: "/finance/installments", label: "الأقساط",      labelEn: "Installments",   permission: "Financial.Installments.View" },
     ],
   },
   {
     label: "الخزينة", labelEn: "Treasury",
     icon: Landmark,
     section: "financial",
-    permission: "Treasury.View",
+    permission: "Financial.Treasury.View",
     items: [
-      { href: "/finance/treasury",    label: "أرصدة الخزائن",        labelEn: "Vault Balances",     permission: "Treasury.View" },
-      { href: "/treasury/movements",  label: "حركة النقدية",         labelEn: "Cash Movements",     permission: "Treasury.View" },
-      { href: "/treasury/transfers",  label: "التحويلات بين الخزائن",labelEn: "Vault Transfers",    permission: "Treasury.View" },
-      { href: "/expenses",            label: "المصروفات",            labelEn: "Expenses",           permission: "Treasury.View" },
-      { href: "/expenses/categories", label: "فئات المصروفات",       labelEn: "Expense Categories", permission: "Treasury.View" },
+      { href: "/finance/treasury",    label: "أرصدة الخزائن",        labelEn: "Vault Balances",     permission: "Financial.Treasury.View" },
+      { href: "/treasury/movements",  label: "حركة النقدية",         labelEn: "Cash Movements",     permission: "Financial.Treasury.View" },
+      { href: "/treasury/transfers",  label: "التحويلات بين الخزائن",labelEn: "Vault Transfers",    permission: "Financial.Treasury.Transfer" },
+      { href: "/expenses",            label: "المصروفات",            labelEn: "Expenses",           permission: "Financial.Expenses.View" },
+      { href: "/expenses/categories", label: "فئات المصروفات",       labelEn: "Expense Categories", permission: "Financial.Expenses.View" },
     ],
   },
   {
     label: "الذمم", labelEn: "Receivables",
     icon: FileText,
     section: "financial",
-    permission: "Treasury.View",
+    permission: "Financial.Doctors.View",
     items: [
-      { href: "/finance/doctors",              label: "حسابات الأطباء",   labelEn: "Doctor Accounts",       permission: "Treasury.View" },
-      { href: "/finance/supplier-payments",    label: "مدفوعات الموردين", labelEn: "Supplier Payments",     permission: "Treasury.View" },
-      { href: "/finance/insurance/claims",     label: "مطالبات التأمين",  labelEn: "Insurance Claims",      permission: "Treasury.View" },
-      { href: "/finance/insurance/receivables",label: "مستحقات التأمين",  labelEn: "Insurance Receivables", permission: "Treasury.View" },
+      { href: "/finance/doctors",              label: "حسابات الأطباء",   labelEn: "Doctor Accounts",       permission: "Financial.Doctors.View" },
+      { href: "/finance/supplier-payments",    label: "مدفوعات الموردين", labelEn: "Supplier Payments",     permission: "Purchasing.Invoices.View" },
+      { href: "/finance/insurance/claims",     label: "مطالبات التأمين",  labelEn: "Insurance Claims",      permission: "Insurance.Claims.View" },
+      { href: "/finance/insurance/receivables",label: "مستحقات التأمين",  labelEn: "Insurance Receivables", permission: "Insurance.Receivables.View" },
     ],
   },
 
@@ -133,34 +134,34 @@ const NAV: NavGroup[] = [
     label: "المخزون", labelEn: "Inventory",
     icon: Package,
     section: "logistics",
-    permission: "Inventory.View",
+    permission: "Inventory.Items.View",
     items: [
-      { href: "/inventory/alerts",     label: "تنبيهات المخزون", labelEn: "Stock Alerts",    permission: "Inventory.View" },
-      { href: "/inventory/items",      label: "الأصناف",         labelEn: "Items",           permission: "Inventory.View" },
-      { href: "/inventory/movements",  label: "حركة المخزون",    labelEn: "Stock Movements", permission: "Inventory.View" },
-      { href: "/inventory/warehouses", label: "المستودعات",      labelEn: "Warehouses",      permission: "Inventory.View" },
-      { href: "/inventory/categories", label: "الفئات",          labelEn: "Categories",      permission: "Inventory.View" },
+      { href: "/inventory/alerts",     label: "تنبيهات المخزون", labelEn: "Stock Alerts",    permission: "Inventory.Alerts.View" },
+      { href: "/inventory/items",      label: "الأصناف",         labelEn: "Items",           permission: "Inventory.Items.View" },
+      { href: "/inventory/movements",  label: "حركة المخزون",    labelEn: "Stock Movements", permission: "Inventory.Movements.View" },
+      { href: "/inventory/warehouses", label: "المستودعات",      labelEn: "Warehouses",      permission: "Inventory.Items.View" },
+      { href: "/inventory/categories", label: "الفئات",          labelEn: "Categories",      permission: "Inventory.Items.View" },
     ],
   },
   {
     label: "المشتريات", labelEn: "Purchasing",
     icon: ShoppingCart,
     section: "logistics",
-    permission: "Purchasing.View",
+    permission: "Purchasing.Suppliers.View",
     items: [
-      { href: "/purchasing/suppliers", label: "الموردون",          labelEn: "Suppliers" },
-      { href: "/purchasing/invoices",  label: "فواتير المشتريات",  labelEn: "Purchase Invoices" },
-      { href: "/purchasing/returns",   label: "مردودات المشتريات", labelEn: "Purchase Returns" },
+      { href: "/purchasing/suppliers", label: "الموردون",          labelEn: "Suppliers",        permission: "Purchasing.Suppliers.View" },
+      { href: "/purchasing/invoices",  label: "فواتير المشتريات",  labelEn: "Purchase Invoices",permission: "Purchasing.Invoices.View" },
+      { href: "/purchasing/returns",   label: "مردودات المشتريات", labelEn: "Purchase Returns", permission: "Purchasing.Returns.View" },
     ],
   },
   {
     label: "الأصول الثابتة", labelEn: "Fixed Assets",
     icon: Building2,
     section: "logistics",
-    permission: "Assets.View",
+    permission: "Assets.Assets.View",
     items: [
-      { href: "/assets",            label: "سجل الأصول", labelEn: "Assets Registry" },
-      { href: "/assets/categories", label: "الفئات",     labelEn: "Categories" },
+      { href: "/assets",            label: "سجل الأصول", labelEn: "Assets Registry", permission: "Assets.Assets.View" },
+      { href: "/assets/categories", label: "الفئات",     labelEn: "Categories",      permission: "Assets.Categories.View" },
     ],
   },
 
@@ -169,27 +170,28 @@ const NAV: NavGroup[] = [
     label: "التقارير", labelEn: "Reports",
     icon: BarChart3,
     section: "admin",
+    permission: "Reports.Financial.View",
     items: [
-      { href: "/reports",            label: "مركز التقارير",   labelEn: "Reports Center" },
-      { href: "/reports/operational",label: "التقرير التشغيلي", labelEn: "Operational" },
-      { href: "/reports/expenses",   label: "تقرير المصروفات",  labelEn: "Expenses Report" },
-      { href: "/reports/purchasing", label: "تقرير المشتريات",  labelEn: "Purchasing Report" },
+      { href: "/reports",            label: "مركز التقارير",   labelEn: "Reports Center",    permission: "Reports.Financial.View" },
+      { href: "/reports/operational",label: "التقرير التشغيلي", labelEn: "Operational",       permission: "Reports.Operational.View" },
+      { href: "/reports/expenses",   label: "تقرير المصروفات",  labelEn: "Expenses Report",   permission: "Reports.Financial.View" },
+      { href: "/reports/purchasing", label: "تقرير المشتريات",  labelEn: "Purchasing Report", permission: "Reports.Purchasing.View" },
     ],
   },
   {
     label: "الإعدادات", labelEn: "Settings",
     icon: Settings,
     section: "admin",
-    permission: "Settings.View",
+    permission: "IAM.Settings.View",
     items: [
-      { href: "/settings/users",              label: "المستخدمون",        labelEn: "Users",               permission: "Users.View" },
-      { href: "/settings/roles",              label: "الأدوار والصلاحيات", labelEn: "Roles & Permissions", permission: "Roles.View" },
-      { href: "/settings/doctors",            label: "الأطباء",            labelEn: "Doctors",             permission: "Settings.View" },
-      { href: "/settings/services",           label: "الخدمات",            labelEn: "Services",            permission: "Settings.View" },
-      { href: "/settings/services/categories",label: "فئات الخدمات",       labelEn: "Service Categories",  permission: "Settings.View" },
-      { href: "/settings/insurance",          label: "شركات التأمين",      labelEn: "Insurance Companies", permission: "Settings.View" },
-      { href: "/settings/vaults",             label: "الخزائن",            labelEn: "Vaults",              permission: "Settings.View" },
-      { href: "/settings/system",             label: "إعدادات النظام",     labelEn: "System Settings",     permission: "Settings.View" },
+      { href: "/settings/users",              label: "المستخدمون",        labelEn: "Users",                  permission: "IAM.Users.View" },
+      { href: "/settings/roles",              label: "الأدوار والصلاحيات", labelEn: "Roles & Permissions",    permission: "IAM.Roles.View" },
+      { href: "/settings/doctors",            label: "الأطباء",            labelEn: "Doctors",                permission: "IAM.Doctors.View" },
+      { href: "/settings/services",           label: "الخدمات",            labelEn: "Services",               permission: "IAM.Services.View" },
+      { href: "/settings/services/categories",label: "فئات الخدمات",       labelEn: "Service Categories",     permission: "IAM.Services.View" },
+      { href: "/settings/insurance",          label: "شركات التأمين",      labelEn: "Insurance Companies",    permission: "IAM.Insurance.View" },
+      { href: "/settings/vaults",             label: "الخزائن",            labelEn: "Vaults",                 permission: "IAM.Vaults.View" },
+      { href: "/settings/system",             label: "إعدادات النظام",     labelEn: "System Settings",        permission: "IAM.Settings.View" },
     ],
   },
 ];
@@ -217,10 +219,10 @@ export function Sidebar({ onClose }: SidebarProps) {
   });
 
   const canSeeItem = (item: NavItem) =>
-    !item.permission || hasPermission(item.permission) || hasPermission("*");
+    !item.permission || hasPermission(item.permission);
 
   const canSeeGroup = (group: NavGroup) =>
-    (!group.permission || hasPermission(group.permission) || hasPermission("*")) &&
+    (!group.permission || hasPermission(group.permission)) &&
     group.items.some(canSeeItem);
 
   const toggle = (label: string) =>
@@ -262,28 +264,30 @@ export function Sidebar({ onClose }: SidebarProps) {
       </div>
 
       {/* ── Dashboard ────────────────────────────────────────────── */}
-      <div className="px-2.5 pt-2.5">
-        <Link
-          href="/"
-          onClick={onClose}
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors"
-          style={{
-            color: pathname === "/" ? "white" : "var(--c-sidebar-text)",
-            background: pathname === "/" ? "var(--c-sidebar-active)" : "transparent",
-          }}
-          onMouseEnter={(e) => {
-            if (pathname !== "/")
-              (e.currentTarget as HTMLElement).style.background = "var(--c-sidebar-hover)";
-          }}
-          onMouseLeave={(e) => {
-            if (pathname !== "/")
-              (e.currentTarget as HTMLElement).style.background = "transparent";
-          }}
-        >
-          <LayoutDashboard size={15} className="shrink-0" />
-          <span>{lbl("لوحة القيادة", "Dashboard")}</span>
-        </Link>
-      </div>
+      {hasPermission("Dashboard.Overview.View") && (
+        <div className="px-2.5 pt-2.5">
+          <Link
+            href="/"
+            onClick={onClose}
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors"
+            style={{
+              color: pathname === "/" ? "white" : "var(--c-sidebar-text)",
+              background: pathname === "/" ? "var(--c-sidebar-active)" : "transparent",
+            }}
+            onMouseEnter={(e) => {
+              if (pathname !== "/")
+                (e.currentTarget as HTMLElement).style.background = "var(--c-sidebar-hover)";
+            }}
+            onMouseLeave={(e) => {
+              if (pathname !== "/")
+                (e.currentTarget as HTMLElement).style.background = "transparent";
+            }}
+          >
+            <LayoutDashboard size={15} className="shrink-0" />
+            <span>{lbl("لوحة القيادة", "Dashboard")}</span>
+          </Link>
+        </div>
+      )}
 
       {/* ── Nav Groups ───────────────────────────────────────────── */}
       <nav className="flex-1 px-2.5 pb-2 overflow-y-auto mt-1 space-y-0.5">

@@ -4,7 +4,7 @@ using MediatR;
 
 namespace DentalERP.Modules.IAM.Features.Users.CreateUser;
 
-[RequirePermission("Users.Create")]
+[RequirePermission("IAM.Users.Create")]
 public sealed record CreateUserCommand(
     string Username,
     string FullName,

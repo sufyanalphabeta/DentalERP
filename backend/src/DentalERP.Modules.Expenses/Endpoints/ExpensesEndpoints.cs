@@ -7,6 +7,7 @@ using DentalERP.Modules.Expenses.Features.GetExpenseDetail;
 using DentalERP.Modules.Expenses.Features.GetExpenses;
 using DentalERP.Modules.Expenses.Features.GetExpenseVoucher;
 using DentalERP.Modules.Expenses.Features.UpdateExpense;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -18,23 +19,21 @@ internal static class ExpensesEndpoints
 {
     internal static void MapExpensesEndpoints(this IEndpointRouteBuilder app)
     {
-        var grp = app.MapGroup("/api/expenses").RequireAuthorization();
+        var grp = app.MapGroup("/api/expenses");
 
-        // Expense Categories
         grp.MapGet("/categories", async (bool? activeOnly, IMediator mediator) =>
         {
             var result = await mediator.Send(new GetExpenseCategoriesQuery(activeOnly ?? false));
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        }).WithName("GetExpenseCategories");
+        }).RequirePermission("Financial.Expenses.View").WithName("GetExpenseCategories");
 
         grp.MapPost("/categories", async (CreateExpenseCategoryCommand cmd, IMediator mediator) =>
         {
             var result = await mediator.Send(cmd);
             return result.IsSuccess ? Results.Created($"/api/expenses/categories/{result.Value}", result.Value)
                 : Results.Conflict(result.Error);
-        }).WithName("CreateExpenseCategory");
+        }).RequirePermission("Financial.Expenses.Create").WithName("CreateExpenseCategory");
 
-        // Expenses
         grp.MapGet("/", async (string? costCenter, Guid? categoryId, DateOnly? dateFrom,
             DateOnly? dateTo, string? relatedModule, int page, int pageSize, IMediator mediator) =>
         {
@@ -42,20 +41,20 @@ internal static class ExpensesEndpoints
                 costCenter, categoryId, dateFrom, dateTo, relatedModule,
                 page < 1 ? 1 : page, pageSize < 1 ? 50 : pageSize));
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        }).WithName("GetExpenses");
+        }).RequirePermission("Financial.Expenses.View").WithName("GetExpenses");
 
         grp.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
         {
             var result = await mediator.Send(new GetExpenseDetailQuery(id));
             return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound(result.Error);
-        }).WithName("GetExpenseDetail");
+        }).RequirePermission("Financial.Expenses.View").WithName("GetExpenseDetail");
 
         grp.MapPost("/", async (CreateExpenseCommand cmd, IMediator mediator) =>
         {
             var result = await mediator.Send(cmd);
             return result.IsSuccess ? Results.Created($"/api/expenses/{result.Value}", result.Value)
                 : Results.BadRequest(result.Error);
-        }).WithName("CreateExpense");
+        }).RequirePermission("Financial.Expenses.Create").WithName("CreateExpense");
 
         grp.MapPut("/{id:guid}", async (Guid id, UpdateExpenseRequest req, IMediator mediator) =>
         {
@@ -63,24 +62,22 @@ internal static class ExpensesEndpoints
                 id, req.CategoryId, req.CostCenter, req.ExpenseDate,
                 req.Amount, req.Description, req.Notes));
             return result.IsSuccess ? Results.NoContent() : Results.BadRequest(result.Error);
-        }).WithName("UpdateExpense");
+        }).RequirePermission("Financial.Expenses.Edit").WithName("UpdateExpense");
 
         grp.MapDelete("/{id:guid}", async (Guid id, IMediator mediator) =>
         {
             var result = await mediator.Send(new DeleteExpenseCommand(id));
             return result.IsSuccess ? Results.NoContent() : Results.NotFound(result.Error);
-        }).WithName("DeleteExpense");
+        }).RequirePermission("Financial.Expenses.Delete").WithName("DeleteExpense");
 
-        // Single-expense PDF voucher
         grp.MapGet("/{id:guid}/voucher", async (Guid id, IMediator mediator) =>
         {
             var result = await mediator.Send(new GetExpenseVoucherQuery(id));
             return result.IsSuccess
                 ? Results.File(result.Value, "application/pdf", $"expense-voucher-{id}.pdf")
                 : Results.NotFound(result.Error);
-        }).WithName("GetExpenseVoucher");
+        }).RequirePermission("Financial.Expenses.ExportPdf").WithName("GetExpenseVoucher");
 
-        // PDF Report
         grp.MapGet("/report/pdf", async (DateOnly dateFrom, DateOnly dateTo,
             string? costCenter, Guid? categoryId, IMediator mediator) =>
         {
@@ -88,7 +85,7 @@ internal static class ExpensesEndpoints
             return result.IsSuccess
                 ? Results.File(result.Value, "application/pdf", $"expense-report-{dateFrom:yyyyMMdd}-{dateTo:yyyyMMdd}.pdf")
                 : Results.BadRequest(result.Error);
-        }).WithName("GetExpenseReportPdf");
+        }).RequirePermission("Financial.Expenses.ExportPdf").WithName("GetExpenseReportPdf");
     }
 }
 

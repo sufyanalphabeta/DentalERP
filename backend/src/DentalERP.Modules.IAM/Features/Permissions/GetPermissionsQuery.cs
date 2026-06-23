@@ -4,8 +4,8 @@ using MediatR;
 
 namespace DentalERP.Modules.IAM.Features.Permissions;
 
-[RequirePermission("Roles.View")]
+[RequirePermission("IAM.Roles.View")]
 public sealed record GetPermissionsQuery : IRequest<Result<IReadOnlyList<PermissionGroup>>>;
 
-public sealed record PermissionItem(Guid Id, string Name, string DisplayName);
+public sealed record PermissionItem(Guid Id, string Name, string DisplayName, string? Screen);
 public sealed record PermissionGroup(string Module, IReadOnlyList<PermissionItem> Permissions);

@@ -4,7 +4,7 @@ using MediatR;
 
 namespace DentalERP.Modules.IAM.Features.Roles.CreateRole;
 
-[RequirePermission("Roles.Create")]
+[RequirePermission("IAM.Roles.Create")]
 public sealed record CreateRoleCommand(
     string Name,
     string? Description,

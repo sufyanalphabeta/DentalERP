@@ -4,7 +4,7 @@ using MediatR;
 
 namespace DentalERP.Modules.IAM.Features.Users.GetUser;
 
-[RequirePermission("Users.View")]
+[RequirePermission("IAM.Users.View")]
 public sealed record GetUserQuery(Guid UserId) : IRequest<Result<UserDetail>>;
 
 public sealed record UserDetail(

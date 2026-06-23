@@ -1,4 +1,5 @@
 using DentalERP.Modules.Clinical.Features.Timeline.GetTimeline;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -23,7 +24,7 @@ public static class TimelineEndpoints
                     patientId, category, eventType, from, to, page, pageSize), ct);
                 return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound(result.Error);
             })
-            .RequireAuthorization()
+            .RequirePermission("Patients.Patients.View")
             .WithName("GetPatientTimeline")
             .Produces<GetTimelineResponse>()
             .Produces(401).Produces(404);

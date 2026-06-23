@@ -4,7 +4,7 @@ using MediatR;
 
 namespace DentalERP.Modules.IAM.Features.Users.UpdateUser;
 
-[RequirePermission("Users.Edit")]
+[RequirePermission("IAM.Users.Edit")]
 public sealed record UpdateUserCommand(
     Guid UserId,
     string FullName,

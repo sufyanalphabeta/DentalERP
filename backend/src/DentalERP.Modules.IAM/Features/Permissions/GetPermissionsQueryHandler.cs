@@ -19,7 +19,8 @@ public sealed class GetPermissionsQueryHandler(IAMDbContext db)
             .GroupBy(p => p.Module)
             .Select(g => new PermissionGroup(
                 g.Key,
-                g.Select(p => new PermissionItem(p.Id, p.Name, p.DisplayName)).ToList()
+                g.OrderBy(p => p.Screen).ThenBy(p => p.SortOrder).ThenBy(p => p.Name)
+                 .Select(p => new PermissionItem(p.Id, p.Name, p.DisplayName, p.Screen)).ToList()
             ))
             .ToList();
 

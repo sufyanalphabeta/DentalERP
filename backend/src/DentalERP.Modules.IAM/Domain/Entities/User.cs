@@ -20,6 +20,9 @@ public sealed class User : BaseEntity
     private readonly List<RefreshToken> _refreshTokens = [];
     public IReadOnlyList<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
 
+    private readonly List<UserPermission> _userPermissions = [];
+    public IReadOnlyList<UserPermission> UserPermissions => _userPermissions.AsReadOnly();
+
     private User() { }
 
     public static User Create(string username, string passwordHash, string fullName, string? email = null, string? phone = null)

@@ -91,8 +91,8 @@ const EMPTY: DashboardData = {
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
 
-function fmtLYD(v: number | null): string {
-  if (v === null) return "—";
+function fmtLYD(v: number | null | undefined): string {
+  if (v == null) return "—";
   return v.toLocaleString("ar-LY", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " د.ل";
 }
 function fmtTime(iso: string): string {
@@ -134,7 +134,7 @@ function Panel({ title, href, linkLabel, children }: {
 /* ── Component ────────────────────────────────────────────────────── */
 
 export default function OperationalDashboard() {
-  const { user } = useAuthStore();
+  const { user, hasPermission } = useAuthStore();
   const { lang } = useLangStore();
   const isAr = lang === "ar";
 
@@ -151,7 +151,7 @@ export default function OperationalDashboard() {
 
     await Promise.allSettled([
       /* Waiting patients */
-      api.get<{ items?: unknown[]; totalCount?: number }>(`/appointments/queue?date=${today}`)
+      api.get<{ items?: unknown[]; totalCount?: number }>(`/queue?date=${today}`)
         .then((r) => {
           const waiting = Array.isArray(r.data?.items)
             ? (r.data.items as { status?: string }[]).filter((x) => x.status === "Waiting").length
@@ -240,6 +240,15 @@ export default function OperationalDashboard() {
   });
 
   const maxRevenue = Math.max(...revenue6.map((m) => Math.max(m.invoiced, m.collected)), 1);
+
+  if (!hasPermission("Dashboard.Overview.View")) {
+    return (
+      <div className="p-12 text-center text-gray-400" dir="rtl">
+        <p className="text-lg font-semibold">403 — غير مصرح</p>
+        <p className="text-sm mt-1">ليس لديك صلاحية عرض لوحة القيادة</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-5 space-y-5" dir={isAr ? "rtl" : "ltr"}>
@@ -427,7 +436,7 @@ export default function OperationalDashboard() {
                           title={`تحصيل: ${fmtLYD(m.collected)}`}
                         />
                         <div className="text-[9px] text-[var(--c-text-secondary)] truncate w-full text-center leading-none">
-                          {m.label.split(" ")[0]}
+                          {(m.label ?? "").split(" ")[0]}
                         </div>
                       </div>
                     ))}

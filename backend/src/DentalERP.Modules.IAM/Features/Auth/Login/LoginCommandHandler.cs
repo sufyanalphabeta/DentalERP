@@ -16,6 +16,8 @@ public sealed class LoginCommandHandler(IAMDbContext db, JwtService jwtService, 
                 .ThenInclude(ur => ur.Role)
                     .ThenInclude(r => r.RolePermissions)
                         .ThenInclude(rp => rp.Permission)
+            .Include(u => u.UserPermissions)
+                .ThenInclude(up => up.Permission)
             .FirstOrDefaultAsync(u => u.Username == request.Username.ToLowerInvariant(), ct);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -24,9 +26,25 @@ public sealed class LoginCommandHandler(IAMDbContext db, JwtService jwtService, 
         if (!user.IsActive)
             return Result.Failure<LoginResponse>(new Error("Auth.AccountDisabled", "Your account has been disabled."));
 
-        var permissions = user.UserRoles
+        // Effective = (role permissions ∪ user additional grants) − user explicit denies
+        var rolePerms = user.UserRoles
             .SelectMany(ur => ur.Role.RolePermissions)
             .Select(rp => rp.Permission.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var userGrants = user.UserPermissions
+            .Where(up => up.GrantType == "Grant")
+            .Select(up => up.Permission.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var userDenies = user.UserPermissions
+            .Where(up => up.GrantType == "Deny")
+            .Select(up => up.Permission.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var permissions = rolePerms
+            .Union(userGrants)
+            .Where(p => !userDenies.Contains(p))
             .Distinct()
             .ToList();
 

@@ -14,6 +14,9 @@ public sealed class PermissionConfiguration : IEntityTypeConfiguration<Permissio
         builder.Property(p => p.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
         builder.Property(p => p.DisplayName).HasColumnName("display_name").HasMaxLength(200).IsRequired();
         builder.Property(p => p.Module).HasColumnName("module").HasMaxLength(50).IsRequired();
+        builder.Property(p => p.Screen).HasColumnName("screen").HasMaxLength(100);
+        builder.Property(p => p.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+        builder.Ignore(p => p.Action);
         builder.Property(p => p.CreatedAt).HasColumnName("created_at");
         builder.Property(p => p.UpdatedAt).HasColumnName("updated_at");
         builder.Property(p => p.DeletedAt).HasColumnName("deleted_at");

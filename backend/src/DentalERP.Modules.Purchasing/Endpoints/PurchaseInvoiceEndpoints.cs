@@ -6,6 +6,7 @@ using DentalERP.Modules.Purchasing.Features.GetPurchaseInvoices;
 using DentalERP.Modules.Purchasing.Features.PostPurchaseInvoice;
 using DentalERP.Modules.Purchasing.Features.UpdatePurchaseInvoice;
 using DentalERP.Modules.Purchasing.Infrastructure;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -18,7 +19,7 @@ public static class PurchaseInvoiceEndpoints
 {
     public static IEndpointRouteBuilder MapPurchaseInvoiceEndpoints(this IEndpointRouteBuilder app)
     {
-        var grp = app.MapGroup("/api/purchasing/invoices").RequireAuthorization();
+        var grp = app.MapGroup("/api/purchasing/invoices");
 
         grp.MapGet("/", async (IMediator mediator,
             Guid? supplierId, string? status, string? search,
@@ -26,7 +27,7 @@ public static class PurchaseInvoiceEndpoints
         {
             var r = await mediator.Send(new GetPurchaseInvoicesQuery(supplierId, status, search, from, to, page, pageSize));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Invoices.View");
 
         grp.MapPost("/", async (IMediator mediator, CreatePurchaseInvoiceCommand cmd) =>
         {
@@ -34,7 +35,7 @@ public static class PurchaseInvoiceEndpoints
             return r.IsSuccess
                 ? Results.Created($"/api/purchasing/invoices/{r.Value}", new { id = r.Value })
                 : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Invoices.Create");
 
         // Item search — must be before /{id:guid} to avoid route conflicts
         // Purchase invoices: items only (no medical services)
@@ -66,25 +67,25 @@ public static class PurchaseInvoiceEndpoints
         {
             var r = await mediator.Send(new GetPurchaseInvoiceDetailQuery(id));
             return r.IsSuccess ? Results.Ok(r.Value) : Results.NotFound(r.Error);
-        });
+        }).RequirePermission("Purchasing.Invoices.View");
 
         grp.MapPut("/{id:guid}", async (IMediator mediator, Guid id, UpdatePurchaseInvoiceCommand cmd) =>
         {
             var r = await mediator.Send(cmd with { InvoiceId = id });
             return r.IsSuccess ? Results.NoContent() : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Invoices.Edit");
 
         grp.MapPost("/{id:guid}/post", async (IMediator mediator, Guid id) =>
         {
             var r = await mediator.Send(new PostPurchaseInvoiceCommand(id));
             return r.IsSuccess ? Results.NoContent() : Results.BadRequest(r.Error);
-        });
+        }).RequirePermission("Purchasing.Orders.Approve");
 
         grp.MapPost("/{id:guid}/cancel", async (IMediator mediator, Guid id, CancelPurchaseInvoiceCommand cmd) =>
         {
             var r = await mediator.Send(cmd with { InvoiceId = id });
             return r.IsSuccess ? Results.NoContent() : Results.BadRequest(new { error = r.Error.Message });
-        });
+        }).RequirePermission("Purchasing.Invoices.Delete");
 
         grp.MapGet("/{id:guid}/pdf", async (IMediator mediator, Guid id, string? clinicName) =>
         {
@@ -92,7 +93,7 @@ public static class PurchaseInvoiceEndpoints
             return r.IsSuccess
                 ? Results.File(r.Value, "application/pdf", $"purchase-invoice-{id}.pdf")
                 : Results.NotFound(r.Error);
-        });
+        }).RequirePermission("Purchasing.Invoices.ExportPdf");
 
         grp.MapDelete("/{id:guid}", async (PurchasingDbContext db, Guid id, CancellationToken ct) =>
         {
@@ -103,7 +104,7 @@ public static class PurchaseInvoiceEndpoints
             inv.Delete();
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
-        });
+        }).RequirePermission("Purchasing.Invoices.Delete");
 
         return app;
     }

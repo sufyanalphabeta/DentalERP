@@ -8,6 +8,7 @@ using DentalERP.Modules.Financial.Features.Analytics.GetInactivePatients;
 using DentalERP.Modules.Financial.Features.Analytics.GetMonthlyRevenue;
 using DentalERP.Modules.Financial.Features.Analytics.GetOverdueInstallments;
 using DentalERP.Modules.Financial.Features.Analytics.GetPatientBalances;
+using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -19,43 +20,43 @@ public static class AnalyticsEndpoints
 {
     public static IEndpointRouteBuilder MapAnalyticsEndpoints(this IEndpointRouteBuilder app)
     {
-        var analytics = app.MapGroup("/api/analytics").RequireAuthorization();
+        var analytics = app.MapGroup("/api/analytics");
 
         analytics.MapGet("/inactive-patients", async (IMediator mediator, int months = 6) =>
         {
             var result = await mediator.Send(new GetInactivePatientsQuery(months));
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Reports.Operational.View");
 
         analytics.MapGet("/overdue-installments", async (IMediator mediator) =>
         {
             var result = await mediator.Send(new GetOverdueInstallmentsQuery());
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Reports.Financial.View");
 
         analytics.MapGet("/monthly-revenue", async (IMediator mediator, int months = 6) =>
         {
             var result = await mediator.Send(new GetMonthlyRevenueQuery(months));
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Dashboard.Revenue.View");
 
         analytics.MapGet("/doctor-performance", async (IMediator mediator, int months = 3) =>
         {
             var result = await mediator.Send(new GetDoctorPerformanceQuery(months));
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Dashboard.Operations.View");
 
         analytics.MapGet("/patient-balances", async (IMediator mediator) =>
         {
             var result = await mediator.Send(new GetPatientBalancesQuery());
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Reports.ARaging.View");
 
         analytics.MapGet("/ar-aging", async (IMediator mediator) =>
         {
             var result = await mediator.Send(new GetARAgingReportQuery());
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Reports.ARaging.View");
 
         analytics.MapGet("/ar-aging/pdf", async (IMediator mediator, string? clinicName) =>
         {
@@ -63,7 +64,7 @@ public static class AnalyticsEndpoints
             return result.IsSuccess
                 ? Results.File(result.Value, "application/pdf", "ar-aging.pdf")
                 : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Reports.ARaging.ExportPdf");
 
         analytics.MapGet("/collection-summary", async (IMediator mediator, DateOnly? from, DateOnly? to) =>
         {
@@ -71,7 +72,7 @@ public static class AnalyticsEndpoints
             var toDate = to ?? DateOnly.FromDateTime(DateTime.UtcNow);
             var result = await mediator.Send(new GetCollectionSummaryQuery(fromDate, toDate));
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Reports.Collections.View");
 
         analytics.MapGet("/collection-summary/pdf", async (IMediator mediator, DateOnly? from, DateOnly? to, string? clinicName) =>
         {
@@ -81,13 +82,13 @@ public static class AnalyticsEndpoints
             return result.IsSuccess
                 ? Results.File(result.Value, "application/pdf", "collection-summary.pdf")
                 : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Reports.Collections.ExportPdf");
 
         analytics.MapGet("/executive-dashboard", async (IMediator mediator) =>
         {
             var result = await mediator.Send(new GetExecutiveDashboardQuery());
             return result.IsSuccess ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-        });
+        }).RequirePermission("Dashboard.Executive.View");
 
         return app;
     }
