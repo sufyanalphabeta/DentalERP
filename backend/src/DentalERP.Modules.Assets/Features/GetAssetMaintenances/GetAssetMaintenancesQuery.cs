@@ -7,5 +7,6 @@ public sealed record GetAssetMaintenancesQuery(Guid AssetId) : IRequest<Result<L
 
 public sealed record AssetMaintenanceDto(
     Guid Id, DateOnly MaintenanceDate, decimal Cost,
-    string Description, string? Vendor, Guid? ExpenseId, DateTime CreatedAt
+    string Description, string? Vendor, DateOnly? NextMaintenanceDate,
+    Guid? ExpenseId, DateTime CreatedAt
 );

@@ -23,6 +23,7 @@ public sealed record ItemListItem(
     string? CategoryName,
     string? UomName,
     decimal UnitCost,
+    decimal SalePrice,
     decimal ReorderLevel,
     decimal CurrentStock,
     bool AllowNegativeStock,

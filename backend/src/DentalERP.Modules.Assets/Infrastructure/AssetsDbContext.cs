@@ -24,6 +24,7 @@ internal sealed class AssetsDbContext : DbContext
             e.Property(x => x.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
             e.Property(x => x.NameAr).HasColumnName("name_ar").HasMaxLength(100);
             e.Property(x => x.Description).HasColumnName("description");
+            e.Property(x => x.DepreciationRate).HasColumnName("depreciation_rate").HasPrecision(5, 2);
             e.Property(x => x.IsActive).HasColumnName("is_active");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
             e.Property(x => x.UpdatedAt).HasColumnName("updated_at");
@@ -45,6 +46,7 @@ internal sealed class AssetsDbContext : DbContext
             e.Property(x => x.PurchaseCost).HasColumnName("purchase_cost").HasPrecision(12, 2);
             e.Property(x => x.Location).HasColumnName("location").HasMaxLength(200);
             e.Property(x => x.Status).HasColumnName("status").HasMaxLength(30);
+            e.Property(x => x.SerialNumber).HasColumnName("serial_number").HasMaxLength(100);
             e.Property(x => x.Notes).HasColumnName("notes");
             e.Property(x => x.CreatedById).HasColumnName("created_by_id");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
@@ -84,6 +86,7 @@ internal sealed class AssetsDbContext : DbContext
             e.Property(x => x.Cost).HasColumnName("cost").HasPrecision(12, 2);
             e.Property(x => x.Description).HasColumnName("description");
             e.Property(x => x.Vendor).HasColumnName("vendor").HasMaxLength(200);
+            e.Property(x => x.NextMaintenanceDate).HasColumnName("next_maintenance_date");
             e.Property(x => x.ExpenseId).HasColumnName("expense_id");
             // migration has performed_by_id
             e.Property(x => x.CreatedById).HasColumnName("performed_by_id");

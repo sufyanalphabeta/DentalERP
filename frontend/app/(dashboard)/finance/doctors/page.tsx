@@ -28,7 +28,8 @@ export default function DoctorAccountsPage() {
     setLoading(true);
     try {
       const r = await api.get<{ items: Doctor[] }>("/users?pageSize=200");
-      const docs = (r.data.items ?? []).filter((u) => u.roles?.includes("Doctor") && u.isActive);
+      // Show all active users — doctors are identified by being assigned to appointments/invoices
+      const docs = (r.data.items ?? []).filter((u) => u.isActive);
       setDoctors(docs);
     } catch {
       setDoctors([]);

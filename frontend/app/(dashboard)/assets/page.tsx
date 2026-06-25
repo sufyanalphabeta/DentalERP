@@ -11,14 +11,11 @@ interface AssetCategory {
 
 interface Asset {
   id: string;
+  assetTag: string;
   name: string;
-  assetCode: string | null;
-  categoryId: string | null;
   categoryName: string | null;
   status: string;
-  purchaseDate: string | null;
   purchaseCost: number | null;
-  currentValue: number | null;
   location: string | null;
   serialNumber: string | null;
 }
@@ -34,25 +31,22 @@ const statusAr: Record<string, string> = {
   Active: "نشط",
   UnderMaintenance: "تحت الصيانة",
   Disposed: "مستبعد",
-  Inactive: "غير نشط",
 };
 
 const statusCls: Record<string, string> = {
   Active: "bg-green-100 text-green-700",
   UnderMaintenance: "bg-amber-100 text-amber-700",
   Disposed: "bg-gray-100 text-gray-500",
-  Inactive: "bg-red-100 text-red-600",
 };
 
 const emptyForm = {
   name: "",
-  assetCode: "",
   categoryId: "",
   purchaseDate: "",
   purchaseCost: "",
   location: "",
   serialNumber: "",
-  description: "",
+  notes: "",
 };
 
 export default function AssetsPage() {
@@ -94,13 +88,12 @@ export default function AssetsPage() {
     try {
       await api.post("/assets", {
         name: form.name,
-        assetCode: form.assetCode || null,
         categoryId: form.categoryId || null,
         purchaseDate: form.purchaseDate || null,
         purchaseCost: form.purchaseCost ? parseFloat(form.purchaseCost) : null,
         location: form.location || null,
         serialNumber: form.serialNumber || null,
-        description: form.description || null,
+        notes: form.notes || null,
       });
       setShowCreate(false);
       setForm(emptyForm);
@@ -149,27 +142,25 @@ export default function AssetsPage() {
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">الفئة</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">الموقع</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">تكلفة الشراء</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">القيمة الحالية</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">الحالة</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {loading ? (
-              <tr><td colSpan={7} className="text-center py-8 text-gray-400">جاري التحميل...</td></tr>
+              <tr><td colSpan={6} className="text-center py-8 text-gray-400">جاري التحميل...</td></tr>
             ) : (data?.items ?? []).length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-8 text-gray-400">لا توجد أصول</td></tr>
+              <tr><td colSpan={6} className="text-center py-8 text-gray-400">لا توجد أصول</td></tr>
             ) : (data?.items ?? []).map((asset) => (
               <tr key={asset.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <div className="text-sm font-medium text-gray-800">{asset.name}</div>
-                  {asset.assetCode && <div className="text-xs text-gray-400 font-mono">{asset.assetCode}</div>}
+                  <div className="text-xs text-gray-400 font-mono">{asset.assetTag}</div>
                   {asset.serialNumber && <div className="text-xs text-gray-400">S/N: {asset.serialNumber}</div>}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-600">{asset.categoryName ?? "—"}</td>
                 <td className="px-4 py-3 text-sm text-gray-600">{asset.location ?? "—"}</td>
                 <td className="px-4 py-3 text-sm text-gray-700">{asset.purchaseCost != null ? `${asset.purchaseCost.toFixed(2)} د.ل` : "—"}</td>
-                <td className="px-4 py-3 text-sm text-gray-700">{asset.currentValue != null ? `${asset.currentValue.toFixed(2)} د.ل` : "—"}</td>
                 <td className="px-4 py-3">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${statusCls[asset.status] ?? "bg-gray-100 text-gray-600"}`}>
                     {statusAr[asset.status] ?? asset.status}
@@ -202,10 +193,6 @@ export default function AssetsPage() {
                 <input className="w-full border rounded-lg px-3 py-2 text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">رمز الأصل</label>
-                <input className="w-full border rounded-lg px-3 py-2 text-sm font-mono" value={form.assetCode} onChange={(e) => setForm({ ...form, assetCode: e.target.value })} />
-              </div>
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">الرقم التسلسلي</label>
                 <input className="w-full border rounded-lg px-3 py-2 text-sm" value={form.serialNumber} onChange={(e) => setForm({ ...form, serialNumber: e.target.value })} />
               </div>
@@ -221,12 +208,16 @@ export default function AssetsPage() {
                 <input type="date" className="w-full border rounded-lg px-3 py-2 text-sm" value={form.purchaseDate} onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">تكلفة الشراء</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">تكلفة الشراء (د.ل)</label>
                 <input type="number" step="0.01" className="w-full border rounded-lg px-3 py-2 text-sm" value={form.purchaseCost} onChange={(e) => setForm({ ...form, purchaseCost: e.target.value })} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">الموقع</label>
                 <input className="w-full border rounded-lg px-3 py-2 text-sm" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
+                <input className="w-full border rounded-lg px-3 py-2 text-sm" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
               </div>
             </div>
             <div className="flex gap-3 mt-5">

@@ -68,6 +68,13 @@ interface ExpenseSummary {
   topCategories: ExpenseTopCategory[];
 }
 interface AssetAlertSummary { underMaintenance: number; totalActive: number; }
+interface UpcomingMaintenance {
+  assetId: string;
+  assetTag: string;
+  assetName: string;
+  nextMaintenanceDate: string;
+  daysUntilDue: number;
+}
 interface ExecutiveDashboard {
   revenue: RevenueSummary; insurance: InsuranceSummary;
   operations: OperationsSummary; expenses: ExpenseSummary;
@@ -143,6 +150,11 @@ export default function OperationalDashboard() {
   const [exec, setExec] = useState<ExecutiveDashboard | null>(null);
   const [revenue6, setRevenue6] = useState<MonthlyRevenue[]>([]);
   const [doctors, setDoctors] = useState<DoctorPerf[]>([]);
+  const [upcomingMaint, setUpcomingMaint] = useState<UpcomingMaintenance[]>([]);
+  const [dismissedMaint, setDismissedMaint] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("dismissed_maint") ?? "[]")); }
+    catch { return new Set(); }
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -227,6 +239,11 @@ export default function OperationalDashboard() {
       api.get<DoctorPerf[]>("/analytics/doctor-performance?months=1")
         .then((r) => setDoctors(Array.isArray(r.data) ? r.data.slice(0, 5) : []))
         .catch(() => {}),
+
+      /* Upcoming maintenance */
+      api.get<UpcomingMaintenance[]>("/assets/upcoming-maintenance?days=30")
+        .then((r) => setUpcomingMaint(Array.isArray(r.data) ? r.data : []))
+        .catch(() => {}),
     ]);
 
     setData(next);
@@ -234,6 +251,13 @@ export default function OperationalDashboard() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  function dismissMaint(assetId: string) {
+    const next = new Set(dismissedMaint);
+    next.add(assetId);
+    setDismissedMaint(next);
+    try { localStorage.setItem("dismissed_maint", JSON.stringify([...next])); } catch { /* ignore */ }
+  }
 
   const todayStr = new Date().toLocaleDateString(isAr ? "ar-LY" : "en-GB", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
@@ -597,7 +621,7 @@ export default function OperationalDashboard() {
           )}
         </Panel>
 
-        {/* Asset Alerts */}
+        {/* Asset Alerts + Upcoming Maintenance */}
         <Panel title="تنبيهات الأصول" href="/assets" linkLabel="سجل الأصول">
           {loading || !exec ? (
             <div className="p-4 space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
@@ -616,16 +640,37 @@ export default function OperationalDashboard() {
                 </div>
               </div>
 
-              {exec.assetAlerts.underMaintenance > 0 && (
-                <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <ShieldCheck size={14} className="text-amber-500 mt-0.5 shrink-0" />
-                  <p className="text-[11px] text-amber-700">
-                    {exec.assetAlerts.underMaintenance} أصل قيد الصيانة حالياً — يُنصح بالمتابعة للتأكد من إعادة تشغيلها.
-                  </p>
+              {/* Upcoming maintenance notifications */}
+              {upcomingMaint.filter((m) => !dismissedMaint.has(m.assetId)).length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[11px] font-semibold text-amber-700">صيانة مجدولة قريباً</div>
+                  {upcomingMaint
+                    .filter((m) => !dismissedMaint.has(m.assetId))
+                    .map((m) => (
+                      <div key={m.assetId} className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-2.5">
+                        <Wrench size={12} className="text-amber-500 mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <Link href={`/assets/${m.assetId}`} className="text-[11px] font-medium text-amber-800 hover:underline block truncate">
+                            {m.assetName}
+                          </Link>
+                          <div className="text-[10px] text-amber-600">
+                            خلال {m.daysUntilDue} يوم —{" "}
+                            {new Date(m.nextMaintenanceDate).toLocaleDateString("ar-LY", { month: "short", day: "numeric" })}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => dismissMaint(m.assetId)}
+                          className="text-[10px] text-amber-500 hover:text-amber-700 shrink-0"
+                          title="إخفاء هذا الإشعار"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
                 </div>
               )}
 
-              {exec.assetAlerts.underMaintenance === 0 && (
+              {exec.assetAlerts.underMaintenance === 0 && upcomingMaint.filter((m) => !dismissedMaint.has(m.assetId)).length === 0 && (
                 <div className="flex items-start gap-2 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
                   <ShieldCheck size={14} className="text-emerald-500 mt-0.5 shrink-0" />
                   <p className="text-[11px] text-emerald-700">جميع الأصول تعمل بشكل طبيعي.</p>

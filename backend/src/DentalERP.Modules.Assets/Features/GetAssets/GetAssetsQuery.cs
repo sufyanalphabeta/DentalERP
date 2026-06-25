@@ -15,5 +15,6 @@ public sealed record GetAssetsResult(List<AssetListDto> Items, int TotalCount, i
 
 public sealed record AssetListDto(
     Guid Id, string AssetTag, string Name, string? CategoryName,
-    string Status, string? Location, decimal? PurchaseCost, DateTime CreatedAt
+    string Status, string? Location, decimal? PurchaseCost, DateTime CreatedAt,
+    string? SerialNumber
 );

@@ -21,9 +21,15 @@ public sealed class GetMovementsQueryHandler(InventoryDbContext db)
         if (request.DestinationId.HasValue)
             query = query.Where(m => m.DestinationId == request.DestinationId.Value);
         if (request.From.HasValue)
-            query = query.Where(m => m.CreatedAt >= request.From.Value);
+        {
+            var from = DateTime.SpecifyKind(request.From.Value, DateTimeKind.Utc);
+            query = query.Where(m => m.CreatedAt >= from);
+        }
         if (request.To.HasValue)
-            query = query.Where(m => m.CreatedAt <= request.To.Value);
+        {
+            var to = DateTime.SpecifyKind(request.To.Value, DateTimeKind.Utc);
+            query = query.Where(m => m.CreatedAt <= to);
+        }
 
         var total = await query.CountAsync(cancellationToken);
 
@@ -39,11 +45,18 @@ public sealed class GetMovementsQueryHandler(InventoryDbContext db)
             .Select(i => new { i.Id, i.Name, i.ItemCode })
             .ToDictionaryAsync(i => i.Id, cancellationToken);
 
+        var warehouseIds = movements.Select(m => m.WarehouseId).Distinct().ToList();
+        var warehouses = await db.Warehouses.IgnoreQueryFilters()
+            .Where(w => warehouseIds.Contains(w.Id))
+            .Select(w => new { w.Id, w.Name })
+            .ToDictionaryAsync(w => w.Id, cancellationToken);
+
         var result = movements.Select(m => new MovementListItem(
             m.Id, m.MovementNumber,
             items.TryGetValue(m.ItemId, out var it) ? it.Name : "?",
             items.TryGetValue(m.ItemId, out var ic) ? ic.ItemCode : "?",
             m.MovementType, m.Direction, m.Quantity, m.UnitCost, m.TotalCost,
+            warehouses.TryGetValue(m.WarehouseId, out var wh) ? wh.Name : null,
             m.DestinationType, m.DestinationId, m.IsNegativeStock, m.Notes, m.CreatedAt))
             .ToList();
 

@@ -42,7 +42,7 @@ public sealed class GetStockAlertsQueryHandler(InventoryDbContext db)
 
         // Expiry alerts: batches expiring within 90 days
         var expiryBatches = await db.StockBatches
-            .Where(b => !b.IsDepleted && b.ExpiryDate != null && b.ExpiryDate <= today.AddDays(90))
+            .Where(b => !b.IsDepleted && b.ExpiryDate != null && b.ExpiryDate <= today.AddDays(365))
             .ToListAsync(cancellationToken);
 
         var batchItemIds = expiryBatches.Select(b => b.ItemId).Distinct().ToList();
@@ -61,7 +61,7 @@ public sealed class GetStockAlertsQueryHandler(InventoryDbContext db)
             .Select(b =>
             {
                 var daysLeft = b.ExpiryDate!.Value.DayNumber - today.DayNumber;
-                var severity = daysLeft <= 0 ? "Expired" : daysLeft <= 30 ? "Critical" : daysLeft <= 60 ? "Warning" : "Notice";
+                var severity = daysLeft <= 0 ? "Expired" : daysLeft <= 7 ? "Critical" : daysLeft <= 30 ? "Warning" : daysLeft <= 90 ? "Notice" : "Upcoming";
                 return new ExpiryAlert(
                     b.Id, b.ItemId,
                     batchItems.TryGetValue(b.ItemId, out var bi) ? bi.ItemCode : "?",

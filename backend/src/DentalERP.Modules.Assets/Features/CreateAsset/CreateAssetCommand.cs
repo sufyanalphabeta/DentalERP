@@ -9,6 +9,7 @@ public sealed record CreateAssetCommand(
     DateOnly? PurchaseDate,
     decimal? PurchaseCost,
     string? Location,
+    string? SerialNumber,
     string? Notes,
     Guid? CreatedById
 ) : IRequest<Result<CreateAssetResult>>;

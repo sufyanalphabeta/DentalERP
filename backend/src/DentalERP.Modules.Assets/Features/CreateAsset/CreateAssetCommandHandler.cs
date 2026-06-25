@@ -24,7 +24,7 @@ internal sealed class CreateAssetCommandHandler : IRequestHandler<CreateAssetCom
 
         var asset = Asset.Create(assetTag, request.Name, request.CategoryId,
             request.PurchaseDate, request.PurchaseCost, request.Location,
-            request.Notes, request.CreatedById);
+            request.SerialNumber, request.Notes, request.CreatedById);
 
         _db.Assets.Add(asset);
 

@@ -18,21 +18,20 @@ interface Unit {
 interface Item {
   id: string;
   name: string;
-  sku: string | null;
+  itemCode: string | null;
   categoryName: string | null;
-  categoryId: string | null;
-  unitName: string | null;
-  unitId: string | null;
-  sellingPrice: number | null;
-  costPrice: number | null;
-  minimumQuantity: number;
+  uomName: string | null;
+  unitCost: number;
+  salePrice: number;
+  reorderLevel: number;
   currentStock: number;
+  isLowStock: boolean;
   isActive: boolean;
 }
 
 interface ItemsResponse {
   items: Item[];
-  totalCount: number;
+  total: number;
   page: number;
   pageSize: number;
 }
@@ -224,7 +223,7 @@ export default function InventoryItemsPage() {
     }
   }
 
-  const totalPages = data ? Math.ceil(data.totalCount / 25) : 1;
+  const totalPages = data ? Math.ceil(data.total / 25) : 1;
 
   return (
     <div className="p-6" dir="rtl">
@@ -274,20 +273,20 @@ export default function InventoryItemsPage() {
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <div className="text-sm font-medium text-gray-800">{item.name}</div>
-                  {item.sku && <div className="text-xs text-gray-400 font-mono">{item.sku}</div>}
+                  {item.itemCode && <div className="text-xs text-gray-400 font-mono">{item.itemCode}</div>}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-600">{item.categoryName ?? "—"}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{item.unitName ?? "—"}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">{item.uomName ?? "—"}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-sm font-medium ${item.currentStock <= item.minimumQuantity ? "text-red-600" : "text-gray-800"}`}>
+                  <span className={`text-sm font-medium ${item.isLowStock ? "text-red-600" : "text-gray-800"}`}>
                     {item.currentStock}
                   </span>
-                  {item.currentStock <= item.minimumQuantity && (
+                  {item.isLowStock && (
                     <span className="mr-1 text-xs text-red-500">⚠</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-800">
-                  {item.sellingPrice != null ? `${item.sellingPrice.toFixed(2)} د.ل` : "—"}
+                  {item.salePrice > 0 ? `${item.salePrice.toFixed(2)} د.ل` : "—"}
                 </td>
                 <td className="px-4 py-3">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${item.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>

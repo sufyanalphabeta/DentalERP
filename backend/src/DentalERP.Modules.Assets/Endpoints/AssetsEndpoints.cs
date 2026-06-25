@@ -1,7 +1,8 @@
-﻿using DentalERP.Modules.Assets.Features.AddAssetDocument;
+using DentalERP.Modules.Assets.Features.AddAssetDocument;
 using DentalERP.Modules.Assets.Features.CreateAsset;
 using DentalERP.Modules.Assets.Features.CreateAssetCategory;
 using DentalERP.Modules.Assets.Features.CreateAssetMaintenance;
+using DentalERP.Modules.Assets.Features.DeleteAssetCategory;
 using DentalERP.Modules.Assets.Features.DisposeAsset;
 using DentalERP.Modules.Assets.Features.GenerateAssetRegister;
 using DentalERP.Modules.Assets.Features.GetAssetByTag;
@@ -10,7 +11,9 @@ using DentalERP.Modules.Assets.Features.GetAssetDetail;
 using DentalERP.Modules.Assets.Features.GetAssetDocuments;
 using DentalERP.Modules.Assets.Features.GetAssetMaintenances;
 using DentalERP.Modules.Assets.Features.GetAssets;
+using DentalERP.Modules.Assets.Features.GetUpcomingMaintenances;
 using DentalERP.Modules.Assets.Features.UpdateAsset;
+using DentalERP.Modules.Assets.Features.UpdateAssetCategory;
 using DentalERP.SharedKernel.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -31,11 +34,29 @@ internal static class AssetsEndpoints
             return r.IsSuccess ? Results.Ok(r.Value) : Results.BadRequest(r.Error);
         }).RequirePermission("Assets.Categories.View").WithName("GetAssetCategories");
 
-        grp.MapPost("/categories", async (CreateAssetCategoryCommand cmd, IMediator mediator) =>
+        grp.MapPost("/categories", async (CreateAssetCategoryRequest req, IMediator mediator) =>
         {
-            var r = await mediator.Send(cmd);
+            var r = await mediator.Send(new CreateAssetCategoryCommand(req.Name, req.NameAr, req.Description, req.DepreciationRate));
             return r.IsSuccess ? Results.Created($"/api/assets/categories/{r.Value}", r.Value) : Results.Conflict(r.Error);
         }).RequirePermission("Assets.Categories.Create").WithName("CreateAssetCategory");
+
+        grp.MapPut("/categories/{id:guid}", async (Guid id, UpdateAssetCategoryRequest req, IMediator mediator) =>
+        {
+            var r = await mediator.Send(new UpdateAssetCategoryCommand(id, req.Name, req.NameAr, req.Description, req.DepreciationRate));
+            return r.IsSuccess ? Results.NoContent() : Results.BadRequest(r.Error);
+        }).RequirePermission("Assets.Categories.Edit").WithName("UpdateAssetCategory");
+
+        grp.MapDelete("/categories/{id:guid}", async (Guid id, IMediator mediator) =>
+        {
+            var r = await mediator.Send(new DeleteAssetCategoryCommand(id));
+            return r.IsSuccess ? Results.NoContent() : Results.BadRequest(r.Error);
+        }).RequirePermission("Assets.Categories.Delete").WithName("DeleteAssetCategory");
+
+        grp.MapGet("/upcoming-maintenance", async (int? days, IMediator mediator) =>
+        {
+            var r = await mediator.Send(new GetUpcomingMaintenancesQuery(days ?? 30));
+            return r.IsSuccess ? Results.Ok(r.Value) : Results.BadRequest(r.Error);
+        }).RequirePermission("Assets.Maintenance.View").WithName("GetUpcomingMaintenances");
 
         grp.MapGet("/", async (Guid? categoryId, string? status, string? search, int page, int pageSize, IMediator mediator) =>
         {
@@ -101,7 +122,7 @@ internal static class AssetsEndpoints
         {
             var r = await mediator.Send(new CreateAssetMaintenanceCommand(
                 id, req.MaintenanceDate, req.Cost, req.Description,
-                req.Vendor, req.VaultId, req.CostCategoryId, req.CreatedById));
+                req.Vendor, req.NextMaintenanceDate, req.VaultId, req.CostCategoryId, req.CreatedById));
             return r.IsSuccess ? Results.Created($"/api/assets/{id}/maintenances/{r.Value}", r.Value)
                 : Results.BadRequest(r.Error);
         }).RequirePermission("Assets.Maintenance.Create").WithName("CreateAssetMaintenance");
@@ -116,6 +137,8 @@ internal static class AssetsEndpoints
     }
 }
 
+internal sealed record CreateAssetCategoryRequest(string Name, string? NameAr, string? Description, decimal? DepreciationRate);
+internal sealed record UpdateAssetCategoryRequest(string Name, string? NameAr, string? Description, decimal? DepreciationRate);
 internal sealed record UpdateAssetRequest(
     string Name, Guid? CategoryId, DateOnly? PurchaseDate,
     decimal? PurchaseCost, string? Location, string? Notes
@@ -123,6 +146,6 @@ internal sealed record UpdateAssetRequest(
 internal sealed record DisposeAssetRequest(Guid? DisposedById);
 internal sealed record CreateMaintenanceRequest(
     DateOnly MaintenanceDate, decimal Cost, string Description,
-    string? Vendor, Guid? VaultId, Guid? CostCategoryId, Guid? CreatedById
+    string? Vendor, DateOnly? NextMaintenanceDate,
+    Guid? VaultId, Guid? CostCategoryId, Guid? CreatedById
 );
-

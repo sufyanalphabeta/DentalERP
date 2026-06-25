@@ -20,15 +20,23 @@ internal sealed class GetAssetsQueryHandler : IRequestHandler<GetAssetsQuery, Re
             query = query.Where(x => x.Name.Contains(request.Search) || x.AssetTag.Contains(request.Search));
 
         var total = await query.CountAsync(ct);
-        var cats = await _db.AssetCategories.AsNoTracking().ToDictionaryAsync(x => x.Id, x => x.Name, ct);
 
-        var items = await query.OrderBy(x => x.AssetTag)
+        var assetList = await query.OrderBy(x => x.AssetTag)
             .Skip((request.Page - 1) * request.PageSize).Take(request.PageSize)
-            .Select(x => new AssetListDto(
-                x.Id, x.AssetTag, x.Name,
-                x.CategoryId.HasValue && cats.ContainsKey(x.CategoryId.Value) ? cats[x.CategoryId.Value] : null,
-                x.Status, x.Location, x.PurchaseCost, x.CreatedAt))
             .ToListAsync(ct);
+
+        var catIds = assetList.Where(x => x.CategoryId.HasValue).Select(x => x.CategoryId!.Value).Distinct().ToList();
+        var cats = catIds.Count > 0
+            ? await _db.AssetCategories.AsNoTracking()
+                .Where(c => catIds.Contains(c.Id))
+                .ToDictionaryAsync(c => c.Id, c => c.Name, ct)
+            : new Dictionary<Guid, string>();
+
+        var items = assetList.Select(x => new AssetListDto(
+            x.Id, x.AssetTag, x.Name,
+            x.CategoryId.HasValue && cats.TryGetValue(x.CategoryId.Value, out var cn) ? cn : null,
+            x.Status, x.Location, x.PurchaseCost, x.CreatedAt, x.SerialNumber))
+            .ToList();
 
         return Result.Success(new GetAssetsResult(items, total, request.Page, request.PageSize));
     }

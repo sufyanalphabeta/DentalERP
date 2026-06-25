@@ -8,6 +8,11 @@ export const api = axios.create({
   timeout: 30000,
 });
 
+/** Fetch a binary (PDF, image, etc.) response with auth token. */
+export function fetchBlob(url: string) {
+  return api.get<ArrayBuffer>(url, { responseType: "arraybuffer" });
+}
+
 api.interceptors.request.use((config) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;

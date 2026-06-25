@@ -25,6 +25,7 @@ public sealed record MovementListItem(
     decimal Quantity,
     decimal? UnitCost,
     decimal? TotalCost,
+    string? WarehouseName,
     string? DestinationType,
     Guid? DestinationId,
     bool IsNegativeStock,

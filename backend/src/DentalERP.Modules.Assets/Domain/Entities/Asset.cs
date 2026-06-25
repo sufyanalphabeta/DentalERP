@@ -14,6 +14,7 @@ public sealed class Asset : BaseEntity
     public decimal? PurchaseCost { get; private set; }
     public string? Location { get; private set; }
     public string Status { get; private set; } = "Active";
+    public string? SerialNumber { get; private set; }
     public string? Notes { get; private set; }
     public Guid? CreatedById { get; private set; }
 
@@ -21,7 +22,7 @@ public sealed class Asset : BaseEntity
 
     public static Asset Create(string assetTag, string name, Guid? categoryId,
         DateOnly? purchaseDate, decimal? purchaseCost, string? location,
-        string? notes = null, Guid? createdById = null)
+        string? serialNumber = null, string? notes = null, Guid? createdById = null)
     {
         if (string.IsNullOrWhiteSpace(assetTag)) throw new ArgumentException("Asset tag is required.");
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is required.");
@@ -35,6 +36,7 @@ public sealed class Asset : BaseEntity
             PurchaseCost = purchaseCost,
             Location = location,
             Status = "Active",
+            SerialNumber = serialNumber,
             Notes = notes,
             CreatedById = createdById,
             CreatedAt = DateTime.UtcNow

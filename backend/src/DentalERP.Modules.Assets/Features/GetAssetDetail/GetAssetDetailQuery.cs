@@ -8,5 +8,5 @@ public sealed record GetAssetDetailQuery(Guid AssetId) : IRequest<Result<AssetDe
 public sealed record AssetDetailDto(
     Guid Id, string AssetTag, string Name, Guid? CategoryId, string? CategoryName,
     DateOnly? PurchaseDate, decimal? PurchaseCost, string? Location, string Status,
-    string? Notes, Guid? CreatedById, DateTime CreatedAt, DateTime? UpdatedAt
+    string? SerialNumber, string? Notes, Guid? CreatedById, DateTime CreatedAt, DateTime? UpdatedAt
 );

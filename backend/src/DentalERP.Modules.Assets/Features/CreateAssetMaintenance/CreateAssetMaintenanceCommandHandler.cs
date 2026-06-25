@@ -45,7 +45,7 @@ internal sealed class CreateAssetMaintenanceCommandHandler : IRequestHandler<Cre
 
         var maintenance = AssetMaintenance.Create(
             request.AssetId, request.MaintenanceDate, request.Cost,
-            request.Description, request.Vendor, request.CreatedById);
+            request.Description, request.Vendor, request.NextMaintenanceDate, request.CreatedById);
 
         if (expenseId.HasValue) maintenance.SetExpenseId(expenseId.Value);
 

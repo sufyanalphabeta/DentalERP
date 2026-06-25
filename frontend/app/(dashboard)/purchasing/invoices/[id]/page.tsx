@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
+import PrintPreviewModal from "@/components/PrintPreviewModal";
 
 // ---- Types ----
 interface Supplier { id: string; name: string; phone: string | null; computedBalance: number; }
@@ -112,7 +113,7 @@ export default function PurchaseInvoicePage() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   const subtotal = lines.reduce((s, l) => s + l.lineTotal, 0);
   const netTotal = Math.max(0, subtotal - discount);
@@ -467,24 +468,13 @@ export default function PurchaseInvoicePage() {
                 ✓ تم الترحيل {inv?.postedAt ? new Date(inv.postedAt).toLocaleDateString("ar-LY") : ""}
               </span>
               <button
-                onClick={async () => {
-                  setPdfLoading(true);
-                  try {
-                    const res = await api.get(`/purchasing/invoices/${id}/pdf`, { responseType: "blob" });
-                    const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `purchase-invoice-${inv?.invoiceNumber ?? id}.pdf`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  } finally {
-                    setPdfLoading(false);
-                  }
-                }}
-                disabled={pdfLoading}
-                className="border border-gray-300 text-gray-600 px-3 py-2 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+                onClick={() => setShowPrintPreview(true)}
+                className="flex items-center gap-1.5 border border-blue-300 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm hover:bg-blue-100 font-medium transition-colors"
               >
-                {pdfLoading ? "جاري التحميل..." : "📄 PDF"}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                طباعة / PDF
               </button>
               <button onClick={cancelInvoice} disabled={cancelling}
                 className="bg-red-50 text-red-600 border border-red-200 px-3 py-2 rounded-lg text-sm hover:bg-red-100 disabled:opacity-50">
@@ -894,6 +884,15 @@ export default function PurchaseInvoicePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Print Preview Modal ──────────────────────────────────── */}
+      {showPrintPreview && (
+        <PrintPreviewModal
+          pdfPath={`/purchasing/invoices/${id}/pdf`}
+          title={`فاتورة مشتريات — ${inv?.invoiceNumber ?? ""}`}
+          onClose={() => setShowPrintPreview(false)}
+        />
       )}
     </div>
   );

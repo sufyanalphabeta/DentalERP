@@ -24,6 +24,6 @@ internal sealed class GetAssetByTagQueryHandler : IRequestHandler<GetAssetByTagQ
         return Result.Success(new AssetDetailDto(
             asset.Id, asset.AssetTag, asset.Name, asset.CategoryId, catName,
             asset.PurchaseDate, asset.PurchaseCost, asset.Location, asset.Status,
-            asset.Notes, asset.CreatedById, asset.CreatedAt, asset.UpdatedAt));
+            asset.SerialNumber, asset.Notes, asset.CreatedById, asset.CreatedAt, asset.UpdatedAt));
     }
 }

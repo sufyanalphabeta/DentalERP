@@ -16,7 +16,7 @@ internal sealed class GetAssetMaintenancesQueryHandler : IRequestHandler<GetAsse
             .Where(x => x.AssetId == request.AssetId)
             .OrderByDescending(x => x.MaintenanceDate)
             .Select(x => new AssetMaintenanceDto(
-                x.Id, x.MaintenanceDate, x.Cost, x.Description, x.Vendor, x.ExpenseId, x.CreatedAt))
+                x.Id, x.MaintenanceDate, x.Cost, x.Description, x.Vendor, x.NextMaintenanceDate, x.ExpenseId, x.CreatedAt))
             .ToListAsync(ct);
 
         return Result.Success(items);

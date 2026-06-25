@@ -38,7 +38,7 @@ public sealed class GetItemsQueryHandler(InventoryDbContext db)
             .Select(i => new
             {
                 i.Id, i.ItemCode, i.Barcode, i.Name, i.NameAr,
-                i.CategoryId, i.UnitOfMeasureId, i.UnitCost,
+                i.CategoryId, i.UnitOfMeasureId, i.UnitCost, i.SalePrice,
                 i.ReorderLevel, i.AllowNegativeStock, i.IsExpiryTracked, i.IsActive
             })
             .ToListAsync(cancellationToken);
@@ -75,7 +75,7 @@ public sealed class GetItemsQueryHandler(InventoryDbContext db)
                 i.Id, i.ItemCode, i.Barcode, i.Name, i.NameAr,
                 i.CategoryId.HasValue ? catDict.GetValueOrDefault(i.CategoryId.Value) : null,
                 i.UnitOfMeasureId.HasValue ? uomDict.GetValueOrDefault(i.UnitOfMeasureId.Value) : null,
-                i.UnitCost, i.ReorderLevel, currentStock,
+                i.UnitCost, i.SalePrice, i.ReorderLevel, currentStock,
                 i.AllowNegativeStock, i.IsExpiryTracked, i.IsActive, isLow);
         }).ToList();
 

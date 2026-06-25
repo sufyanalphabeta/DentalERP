@@ -15,7 +15,7 @@ internal sealed class GetAssetCategoriesQueryHandler : IRequestHandler<GetAssetC
         var query = _db.AssetCategories.AsQueryable();
         if (request.ActiveOnly) query = query.Where(x => x.IsActive);
         var items = await query.OrderBy(x => x.Name)
-            .Select(x => new AssetCategoryDto(x.Id, x.Name, x.NameAr, x.IsActive)).ToListAsync(ct);
+            .Select(x => new AssetCategoryDto(x.Id, x.Name, x.NameAr, x.Description, x.DepreciationRate, x.IsActive)).ToListAsync(ct);
         return Result.Success(items);
     }
 }

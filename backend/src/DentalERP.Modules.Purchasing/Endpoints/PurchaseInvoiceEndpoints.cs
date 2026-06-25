@@ -87,9 +87,9 @@ public static class PurchaseInvoiceEndpoints
             return r.IsSuccess ? Results.NoContent() : Results.BadRequest(new { error = r.Error.Message });
         }).RequirePermission("Purchasing.Invoices.Delete");
 
-        grp.MapGet("/{id:guid}/pdf", async (IMediator mediator, Guid id, string? clinicName) =>
+        grp.MapGet("/{id:guid}/pdf", async (IMediator mediator, Guid id, bool landscape = false) =>
         {
-            var r = await mediator.Send(new GetPurchaseInvoicePdfQuery(id, clinicName ?? "عيادة الأسنان"));
+            var r = await mediator.Send(new GetPurchaseInvoicePdfQuery(id, landscape));
             return r.IsSuccess
                 ? Results.File(r.Value, "application/pdf", $"purchase-invoice-{id}.pdf")
                 : Results.NotFound(r.Error);

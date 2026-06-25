@@ -9,6 +9,7 @@ public sealed record CreateAssetMaintenanceCommand(
     decimal Cost,
     string Description,
     string? Vendor,
+    DateOnly? NextMaintenanceDate,
     Guid? VaultId,
     Guid? CostCategoryId,
     Guid? CreatedById
